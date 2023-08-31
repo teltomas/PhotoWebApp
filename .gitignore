@@ -161,3 +161,9 @@ cython_debug/
 schema.sql
 init_db.py
 dbquery.py
+static/images/1.jpg
+static/images/2.jpg
+static/images/3.jpg
+static/images/4.jpg
+static/images/5.jpg
+flask_session

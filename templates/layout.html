@@ -10,9 +10,11 @@
         
         <!-- <link href="/static/favicon.ico" rel="icon"> -->
 
+        <script src="/static/js.js"></script>
+
         <link href="/static/styles.css" rel="stylesheet">
 
-        <title>{{ pagename }}: {% block title %}{% endblock %}</title>
+        <title>{{ pageinfo.page_name }}: {% block title %}{% endblock %}</title>
 
     </head>
 
@@ -35,6 +37,10 @@
 
                 </ul>
             </nav>
+
+            <header><img src="static/images/2.jpg"></header>
+
+            {% block main %}{% endblock %}
 
 
 

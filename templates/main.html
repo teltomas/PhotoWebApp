@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Welcome
+{% endblock %}
+
+{% block main %}
+
+        
+    
+
+        {% for row in imgs %}
+
+        
+        <img class="showcase" src="static/images/{{ row.img_id }}.jpg">
+        
+
+        {% endfor %}
+
+        
+
+    
+
+{% endblock %}

@@ -6,17 +6,39 @@ body {
     max-width: 1200px;
 }
 
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
+
+a {
+    color: inherit;
+    text-decoration: inherit;
+  }
+
+  
+
 nav {
     margin: auto;
     text-align: center;
 }
 
 .navitem {
+    display: span;
     font-size: 2em;
     color: 8c8c8c;
-    padding: 2em;
 }
 
 .navitem:hover {
     color: 4f4f4f;
 }
+
+header {
+    background-image: url("images/2.jpg");
+}
+
+.showcase {
+    max-width: 5em;
+}
+
