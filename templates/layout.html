@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+    <head>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="initial-scale=1, width=device-width">
+
+        
+        <!-- <link href="/static/favicon.ico" rel="icon"> -->
+
+        <link href="/static/styles.css" rel="stylesheet">
+
+        <title>{{ pagename }}: {% block title %}{% endblock %}</title>
+
+    </head>
+
+    <body>
+        <div class="container">
+
+            <nav>
+                <ul>
+
+                    <li class="navitem"><a href="/">home</a></li>
+                    <li class="navitem"></li><a href="/galleries">galleries</a></li>
+                    {% if blog %}
+                    <li class="navitem"></li><a href="/blog">blog</a></li>
+                    {% endif %}
+                    {% if exhibitions %}
+                    <li class="navitem"></li><a href="/exhibitions">exhibitions</a></li>
+                    {% endif %}
+                    <li class="navitem"></li><a href="/about">about</a></li>
+                    <li class="navitem"></li><a href="/contact">contact</a></li>
+
+                </ul>
+            </nav>
+
+
+
+        </div>
+    </body>
+
+</html>

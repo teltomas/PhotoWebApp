@@ -1,0 +1,22 @@
+body {
+    background-color: f0f0f0;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+nav {
+    margin: auto;
+    text-align: center;
+}
+
+.navitem {
+    font-size: 2em;
+    color: 8c8c8c;
+    padding: 2em;
+}
+
+.navitem:hover {
+    color: 4f4f4f;
+}
