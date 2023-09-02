@@ -7,18 +7,19 @@
 {% block main %}
 
         
-    
-
+    <div class="showcase">       
+        <br/>
+        <p>
+            {{ pageinfo.small_descr }}
+        </p>
+        <br/>
         {% for row in imgs %}
 
-        
-        <img class="showcase" src="static/images/{{ row.img_id }}.jpg">
-        
+        <img class="showcaseimg" src="static/images/{{ row.img_id }}.jpg">        
 
         {% endfor %}
 
-        
-
+    </div>
     
 
 {% endblock %}

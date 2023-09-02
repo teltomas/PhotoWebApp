@@ -13,11 +13,18 @@ app = Flask(__name__)
 
 # configure database management
 
+# arrange the data from the db in dictionaries #
+# as documented in https://docs.python.org/3/library/sqlite3.html#sqlite3-howto-row-factory #
+# and https://stackoverflow.com/questions/3300464/how-can-i-get-dict-from-sqlite-query #
+
 def dict_factory(cursor, row):
     d = {}
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]
     return d
+
+# database in sqlite config as documented in #
+# https://www.digitalocean.com/community/tutorials/how-to-use-an-sqlite-database-in-a-flask-application #
 
 def get_db_connection():
     conn = sqlite3.connect('photowebapp.db')
@@ -29,14 +36,12 @@ def get_db_connection():
 
 ####### FOR FRONTEND #######
 
-# get necessary general info from db to store in global variables #
+# get the necessary general info from db to store in global variable #
 conn = get_db_connection()
-page_info = conn.execute('SELECT page_name, person_name, small_descr, inst_link, face_link, yt_link FROM page_info WHERE id = 1;').fetchone()
+page_info = conn.execute('SELECT * FROM page_info WHERE id = 1;').fetchone()
 
 conn.close()
 
-
-print(page_info["page_name"])
 
 # main page #
 
@@ -51,11 +56,6 @@ def main():
     conn.close()
 
     return render_template("/main.html", pageinfo = page_info, imgs = sc_img)
-
-
-
-    
-
 
 
 

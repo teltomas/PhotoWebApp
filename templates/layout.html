@@ -19,32 +19,66 @@
     </head>
 
     <body>
-        <div class="container">
+        
+        <nav>
+            <ul>
 
-            <nav>
-                <ul>
+                <li><a class="menu" href="/">Home</a></li>
+                <li><a class="menu" href="/galleries">Galleries</a></li>
+                {% if blog %}
+                <li><a class="menu" href="/blog">Blog</a></li>
+                {% endif %}
+                {% if exhibitions %}
+                <li><a class="menu" href="/exhibitions">Exhibitions</a></li>
+                {% endif %}
+                <li><a class="menu" href="/about">About</a></li>
+                <li><a class="menu" href="/contact">Contact</a></li>
 
-                    <li class="navitem"><a href="/">home</a></li>
-                    <li class="navitem"></li><a href="/galleries">galleries</a></li>
-                    {% if blog %}
-                    <li class="navitem"></li><a href="/blog">blog</a></li>
-                    {% endif %}
-                    {% if exhibitions %}
-                    <li class="navitem"></li><a href="/exhibitions">exhibitions</a></li>
-                    {% endif %}
-                    <li class="navitem"></li><a href="/about">about</a></li>
-                    <li class="navitem"></li><a href="/contact">contact</a></li>
+            </ul>
+        </nav>
 
-                </ul>
-            </nav>
+        <header>        
 
-            <header><img src="static/images/2.jpg"></header>
+        </header>
 
-            {% block main %}{% endblock %}
+        <div class="prflinfo">
+            <img class="profileimg" src="static/images/1.jpg">
 
+                <p>{{ pageinfo.page_name}}</p>
+
+                <p>
+                    
+                        <a href="{{ face  }}" target="new"><img class="icons" alt="Facebook" src="static/images/face.png"></a>
+                    
+                        <a href="{{ insta  }}" target="new"><img class="icons" alt="Instagram" src="static/images/insta.png"></a>
+                    
+                        <a href="{{ tweet  }}" target="new"><img class="icons" alt="Twitter X" src="static/images/tweet.png"></a>
+                    
+                        <a href="{{ ytb  }}" target="new"><img class="icons" alt="YouTube" src="static/images/ytb.png"></a>
+                    
+                        <a href="{{ px  }}" target="new"><img class="icons" alt="500px" src="static/images/5px.png"></a>
+                    
+                        <a href="{{ bhnc  }}" target="new"><img class="icons" alt="Behance" src="static/images/bh.png"></a>
+                    
+                        <a href="{{ flickr  }}" target="new"><img class="icons" alt="Flickr" src="static/images/fli.png"></a>
+                    
+                        <a href="{{ tblr  }}" target="new"><img class="icons" alt="tumblr" style="border-radius: 3px;" src="static/images/tblr.png"></a>
+                    
+                </p>
 
 
         </div>
+
+        <div class="container">
+
+            {% block main %}{% endblock %}
+
+        </div>
+
+        <footer>
+            <p style="padding: 40px;">Legal Disclaimers | Copyright Disclaimers</p>
+        </footer>
+
     </body>
 
 </html>
