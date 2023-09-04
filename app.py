@@ -46,6 +46,7 @@ conn.close()
 # main page #
 
 @app.route("/")
+@app.route("/main")
 def main():
 
     # render main page #
@@ -56,6 +57,22 @@ def main():
     conn.close()
 
     return render_template("/main.html", pageinfo = page_info, imgs = sc_img)
+
+
+@app.route("/journal")
+def journal():
+
+    # render journal page #
+
+    # get from db the journal intros to disoplay in page #
+    conn = get_db_connection()
+    journals = conn.execute('SELECT * FROM articles WHERE type = "journal";').fetchall()
+    conn.close()
+
+    if len(journals) < 1:
+        return render_template("/article.html", pageinfo = page_info, flash_message = "No journal intros to display.")
+
+    return render_template("/article.html", pageinfo = page_info)
 
 
 

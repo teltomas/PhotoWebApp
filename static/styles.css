@@ -1,4 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600&family=Roboto:wght@100;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Inter:wght@100;200;300;400;500;600&family=Roboto:wght@100;400;500&display=swap');
+
+* {
+     margin: 0;
+     padding: 0;
+     font-size: 18px;
+}
 
 body {
     background-color: #f0f0f0;
@@ -11,22 +18,48 @@ a:link, a:visited, a:active, a:hover {
     text-decoration: none;
 }
 
+h2 {
+    margin: 0.5rem;
+    font-family: alex brush;
+    font-size: 2.2em;
+}
+
+h3 {
+    font-size: 2em;
+    padding: 0.5em;
+ }
+
+h4 {
+    font-size: 1em;
+    padding: 0.5em;
+}
+
+h5 {
+    font-size: 0.8em;
+    padding: 0.5em;
+}
+
+
 .container {
-    max-width: 1200px;
-    margin: auto;
+    max-width: 1600px;
+    margin-inline: auto;
+    margin-bottom: 1rem;
+    display: grid;
+    text-align: center;
 }
 
 ul {
     list-style-type: none;
+    display: inline;
     margin: 0;
     padding: 0;
-    font-size: 1.5em;
+    font-size: 1.5rem;
 }
 
 li {
     margin: auto;
     display: inline;
-    padding: 2em;
+    padding: 2rem;
 }
 
 .menu {
@@ -37,17 +70,27 @@ li {
 .menu:hover {
     color: #3b3b3b;
   }
+
+.menuf {
+    color: #949494;
+    text-decoration: none;
+}
+  
+.menuf:hover {
+    color: #727272;
+  }
   
 
 nav {
     margin: auto;
     text-align: center;
-    padding: 1em 0;
+    padding: 1rem 0;
 }
 
 header {
     height: 420px;
     background-image: url("images/2.jpg");
+    background-position: center;
     background-repeat: no-repeat;
     background-size: auto;
     -webkit-mask-image:-webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));
@@ -55,33 +98,42 @@ header {
     text-align: center;  
 }
 
-.showcase {
-    max-width: 1200px;
+.maindescr {
     margin: auto;
-    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.showcase {
+    margin-inline: auto;
+    margin-top: 1rem; 
+    grid-template-columns: 1fr 1fr 1fr;
+
 }
 .showcaseimg {
-    max-width: 18em;
-    padding: 3em;
-    display: inline;
-}
+    max-width: 18rem;
+    margin: 1rem;
+    padding: 2rem;
+    /*border: solid 0.1rem #727272;*/
+    background-color: white;
+    }
 
 table {
     margin:auto;
 }
 
 .prflinfo {
-    margin-top: -20em;
+    margin-top: -20rem;
     position: relative;
+    margin-bottom: 1rem;
 }
 
 .profileimg {
-    margin-top: 15em;
-    max-width: 10em;
+    margin-top: 15rem;
+    max-width: 10rem;
     background-color: #f0f0f0;
     border-radius: 50%;    
     box-shadow: 0 0 0 5px #f0f0f0;
-    border: solid 2px #3b3b3b;
+    border: solid 2px #727272;
     padding:5px;
 }
 
@@ -95,8 +147,31 @@ table {
 footer  {
     position: relative;
     bottom: 0;
-    margin-bottom: 0;
+    margin-top: 3 rem;;
     text-align: center;
     background-color: #3b3b3b;
     color: #f0f0f0;
+}
+
+.article_container {
+    max-width: 1400px;
+    display: grid;
+    margin-top: 1.5rem;
+}
+
+.article_content {
+    margin-top: 1.5rem;
+    text-align: justify;
+    font-size: 0.8em;
+}
+
+.article_img {
+    display: inline;
+    top: 0;
+    right: 0;
+    max-width: 10rem;
+}
+
+p.article {
+    display: inline;
 }

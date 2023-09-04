@@ -21,15 +21,16 @@
     <body>
         
         <nav>
+                        
             <ul>
 
                 <li><a class="menu" href="/">Home</a></li>
                 <li><a class="menu" href="/galleries">Galleries</a></li>
                 {% if blog %}
-                <li><a class="menu" href="/blog">Blog</a></li>
+                <li><a class="menu" href="/journal">Journal</a></li>
                 {% endif %}
                 {% if exhibitions %}
-                <li><a class="menu" href="/exhibitions">Exhibitions</a></li>
+                <li><a class="menu" href="/events">Events</a></li>
                 {% endif %}
                 <li><a class="menu" href="/about">About</a></li>
                 <li><a class="menu" href="/contact">Contact</a></li>
@@ -44,7 +45,7 @@
         <div class="prflinfo">
             <img class="profileimg" src="static/images/1.jpg">
 
-                <p>{{ pageinfo.page_name}}</p>
+                <h2>{{ pageinfo.page_name}}</h2>
 
                 <p>
                     
@@ -75,8 +76,10 @@
 
         </div>
 
+        
+
         <footer>
-            <p style="padding: 40px;">Legal Disclaimers | Copyright Disclaimers</p>
+            <p style="padding: 40px;"><a class="menuf" href="">Legal Disclaimers</a> | <a class="menuf" href="">Copyright Disclaimers</a></p>
         </footer>
 
     </body>

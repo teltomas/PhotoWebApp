@@ -7,12 +7,15 @@
 {% block main %}
 
         
-    <div class="showcase">       
-        <br/>
+    <div class="maindescr"><br/>
         <p>
             {{ pageinfo.small_descr }}
         </p>
-        <br/>
+    </div>
+    
+    <div class="showcase">       
+        
+    
         {% for row in imgs %}
 
         <img class="showcaseimg" src="static/images/{{ row.img_id }}.jpg">        
