@@ -30,14 +30,20 @@ h3 {
  }
 
 h4 {
-    font-size: 1em;
-    padding: 0.5em;
+    font-size: 1.3em;
+    text-decoration: underline;
+    padding-bottom: 0.3em;
 }
 
 h5 {
     font-size: 0.8em;
-    padding: 0.5em;
+    padding-bottom: 1em;
 }
+
+p {
+    margin-top: 0.5em;
+}
+
 
 
 .container {
@@ -154,24 +160,33 @@ footer  {
 }
 
 .article_container {
+    margin: auto;
     max-width: 1400px;
-    display: grid;
     margin-top: 1.5rem;
+    padding: 0.5rem;
 }
 
 .article_content {
     margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1.5rem;
     text-align: justify;
     font-size: 0.8em;
+    border-bottom: 2px solid #949494;
 }
 
 .article_img {
-    display: inline;
-    top: 0;
-    right: 0;
-    max-width: 10rem;
+    float: right;
+    top: 0.5em;
+    margin-left: 1.5em;
+    margin-bottom: 1.5em;
+    max-width: 15rem;
+    max-height: 20rem;
+    box-shadow: 0px 2px 5px 0px;
 }
 
-p.article {
-    display: inline;
-}
+.clearfix::after {
+    content: "";
+    clear: both;
+    display: table;
+  }
