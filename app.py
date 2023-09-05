@@ -1,8 +1,10 @@
 import sqlite3
 from datetime import datetime
-from flask import Flask, redirect, render_template, session
+from flask import Flask, redirect, render_template, session, request
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
+from flask_mail import Mail, Message
+
 
 from front import date
 # from back import
@@ -35,15 +37,39 @@ def get_db_connection():
     return conn
 
 
-
-
 ####### FOR FRONTEND #######
 
-# get the necessary general info from db to store in global variable #
+# get the necessary general info from db to store in global variables #
+
+journal_exist = False
+events_exist = False
+
 conn = get_db_connection()
 page_info = conn.execute('SELECT * FROM page_info WHERE id = 1;').fetchone()
+journals = conn.execute('SELECT * FROM articles WHERE type = "journal";').fetchone()
+events = conn.execute('SELECT * FROM articles WHERE type = "event";').fetchone()
 
 conn.close()
+
+
+# Configuration of email sender
+
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = page_info['page_email']
+app.config['MAIL_PASSWORD'] = ''
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+
+mail = Mail(app)
+
+# Determine if there are journals or events articles to decide if the menu option is necessary #
+
+if journals:
+    journal_exist = True
+
+if events:
+    events_exist = True
 
 
 # main page #
@@ -59,7 +85,7 @@ def main():
     sc_img = conn.execute('SELECT * FROM gall_img_index WHERE gall_id = 1;').fetchall()
     conn.close()
 
-    return render_template("/main.html", pageinfo = page_info, imgs = sc_img)
+    return render_template("/main.html", pageinfo = page_info, journal = journal_exist, events = events_exist, imgs = sc_img)
 
 
 @app.route("/journal")
@@ -67,16 +93,63 @@ def journal():
 
     # render journal page #
 
-    # get from db the journal intros to disoplay in page #
+    # get from db the journal intros to display in page #
     conn = get_db_connection()
     journals = conn.execute('SELECT * FROM articles WHERE type = "journal" AND archived = False ORDER BY date DESC;').fetchall()
     conn.close()
 
     if len(journals) < 1:
-        return render_template("/article.html", pageinfo = page_info, flash_message = "No journal intros to display.")
+        return render_template("/article.html", pageinfo = page_info, journal = journal_exist, events = events_exist, page_type = "Journal", flash_message = "No journal intros to display.")
 
-    return render_template("/article.html", pageinfo = page_info, articles = journals)
+    return render_template("/article.html", pageinfo = page_info, page_type = "Journal", journal = journal_exist, events = events_exist, articles = journals)
 
+
+@app.route("/events")
+def events():
+
+    # render events page #
+
+    # get from db the events intros to display in page #
+    conn = get_db_connection()
+    events = conn.execute('SELECT * FROM articles WHERE type = "event" AND archived = False ORDER BY date DESC;').fetchall()
+    conn.close()
+
+    if not events:
+        return render_template("/article.html", pageinfo = page_info, page_type = "Events", journal = journal_exist, events = events_exist, flash_message = "No events to display yet.")
+
+    return render_template("/article.html", pageinfo = page_info, journal = journal_exist, page_type = "Events", events = events_exist, articles = events)
+
+
+
+@app.route("/about")
+def about():
+
+    # render about page #
+
+     return render_template("/about.html", pageinfo = page_info, journal = journal_exist, events = events_exist)
+
+
+@app.route("/contact", methods=["GET", "POST"])
+def contact():
+
+    if request.method == "GET":
+    # render contact page in case of get method #
+
+        return render_template("/contact.html", pageinfo = page_info, journal = journal_exist, events = events_exist)
+    
+    if request.method == "POST":
+
+        # fetch the info sent by the user #
+        # sending the email requested by the user, config per demonstration in https://pythonbasics.org/flask-mail/ #
+
+        try:        
+            msg = Message(request.form.get("subject"), sender = page_info['page_email'], recipients = ['t_elt@hotmail.com'])
+            msg.body = (request.form.get("message") + "\n\nSender email: \n" + request.form.get("email"))
+            mail.send(msg)
+        except:
+            return render_template("/contact.html", pageinfo = page_info, journal = journal_exist, events = events_exist, flash_message = "Sorry! There was an error sending the message...")
+        
+        return render_template("/contact.html", pageinfo = page_info, journal = journal_exist, events = events_exist, flash_message = "Message sent. Thank you!")
 
 
 ####### FOR USER APP MANAGEMENT #######

@@ -1,14 +1,14 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Journal
+    {{ page_type }}
 {% endblock %}
 
 {% block main %}
 
 <div class="article_container">
 
-    <h3>Journal</h3>
+    <h3>{{ page_type }}</h3>
 
     {% if flash_message %}
         <br/>

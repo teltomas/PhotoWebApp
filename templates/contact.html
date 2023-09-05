@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Contact
+{% endblock %}
+
+{% block main %}
+
+<div class="article_container" style="width: 80%;">
+
+    <h3>Contact</h3>
+
+        {% if flash_message %}
+        <br/>
+
+        
+            <h4 style="text-decoration: none;">{{ flash_message }}</h4>
+        
+
+        <br/>
+        {% endif %}
+
+        <div class="article_content" style="border-bottom: none; text-align: left;">
+
+            <form action="/contact" method="post" id="contact" name="contact">
+
+                <input type="text" name="subject" id="subject" maxlength="50" placeholder="Subject" required>
+                <br/>
+                <textarea type="text" name="message" id="message" placeholder="Message..." required></textarea>
+                <br/>
+                <input type="text" name="email" id="email" placeholder="Email address" required>
+                <br/>
+                <input type="submit">
+
+            </form>
+        
+        </div>
+
+</div>
+
+{% endblock %}

@@ -24,12 +24,12 @@
                         
             <ul>
 
-                <li><a class="menu" href="/">Home</a></li>
+                <li><a class="menu" href="/main">Home</a></li>
                 <li><a class="menu" href="/galleries">Galleries</a></li>
-                {% if blog %}
+                {% if journal %}
                 <li><a class="menu" href="/journal">Journal</a></li>
                 {% endif %}
-                {% if exhibitions %}
+                {% if events %}
                 <li><a class="menu" href="/events">Events</a></li>
                 {% endif %}
                 <li><a class="menu" href="/about">About</a></li>
@@ -49,21 +49,21 @@
 
                 <p>
                     
-                        <a href="{{ face  }}" target="new"><img class="icons" alt="Facebook" src="static/images/face.png"></a>
+                        <a href="{{ pageinfo.face_link }}" target="new"><img class="icons" alt="Facebook" src="static/images/face.png"></a>
                     
-                        <a href="{{ insta  }}" target="new"><img class="icons" alt="Instagram" src="static/images/insta.png"></a>
+                        <a href="{{ pageinfo.insta_link }}" target="new"><img class="icons" alt="Instagram" src="static/images/insta.png"></a>
                     
-                        <a href="{{ tweet  }}" target="new"><img class="icons" alt="Twitter X" src="static/images/tweet.png"></a>
+                        <a href="{{ pageinfo.tweet_link }}" target="new"><img class="icons" alt="Twitter X" src="static/images/tweet.png"></a>
                     
-                        <a href="{{ ytb  }}" target="new"><img class="icons" alt="YouTube" src="static/images/ytb.png"></a>
+                        <a href="{{ pageinfo.yt_link }}" target="new"><img class="icons" alt="YouTube" src="static/images/ytb.png"></a>
                     
-                        <a href="{{ px  }}" target="new"><img class="icons" alt="500px" src="static/images/5px.png"></a>
+                        <a href="{{ pageinfo.px_link }}" target="new"><img class="icons" alt="500px" src="static/images/5px.png"></a>
                     
-                        <a href="{{ bhnc  }}" target="new"><img class="icons" alt="Behance" src="static/images/bh.png"></a>
+                        <a href="{{ pageinfo.bhnc_link }}" target="new"><img class="icons" alt="Behance" src="static/images/bh.png"></a>
                     
-                        <a href="{{ flickr  }}" target="new"><img class="icons" alt="Flickr" src="static/images/fli.png"></a>
+                        <a href="{{ pageinfo.flickr_link }}" target="new"><img class="icons" alt="Flickr" src="static/images/fli.png"></a>
                     
-                        <a href="{{ tblr  }}" target="new"><img class="icons" alt="tumblr" style="border-radius: 3px;" src="static/images/tblr.png"></a>
+                        <a href="{{ pageinfo.tumblr_link }}" target="new"><img class="icons" alt="tumblr" style="border-radius: 3px;" src="static/images/tblr.png"></a>
                     
                 </p>
 

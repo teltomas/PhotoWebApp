@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    About
+{% endblock %}
+
+{% block main %}
+
+<div class="article_container">
+
+    <h3>About</h3>
+
+    
+        <div class="article_content" style="border-bottom: none; text-align: center;">
+                
+            <p>{{ pageinfo.about }}</p>
+            <br/>
+
+            {% if pageinfo.about_img %}
+                <img class="showcaseimg" alt="About Photograph" src="static/images/0.jpg">
+            {% endif %}
+  
+        </div>
+
+</div>
+
+{% endblock %}
