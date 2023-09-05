@@ -4,11 +4,14 @@ from flask import Flask, redirect, render_template, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 
-# from front import
+from front import date
 # from back import
 
 # configure app
 app = Flask(__name__)
+
+# Custom filter
+app.jinja_env.filters["date"] = date
 
 
 # configure database management
@@ -66,13 +69,13 @@ def journal():
 
     # get from db the journal intros to disoplay in page #
     conn = get_db_connection()
-    journals = conn.execute('SELECT * FROM articles WHERE type = "journal";').fetchall()
+    journals = conn.execute('SELECT * FROM articles WHERE type = "journal" AND archived = False ORDER BY date DESC;').fetchall()
     conn.close()
 
     if len(journals) < 1:
         return render_template("/article.html", pageinfo = page_info, flash_message = "No journal intros to display.")
 
-    return render_template("/article.html", pageinfo = page_info)
+    return render_template("/article.html", pageinfo = page_info, articles = journals)
 
 
 

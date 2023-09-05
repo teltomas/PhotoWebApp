@@ -107,6 +107,7 @@ header {
 .maindescr {
     margin: auto;
     margin-bottom: 0.5rem;
+    padding: 1em;
 }
 
 .showcase {
@@ -122,6 +123,7 @@ header {
     /*border: solid 0.1rem #727272;*/
     background-color: white;
     }
+
 
 table {
     margin:auto;
@@ -163,7 +165,7 @@ footer  {
     margin: auto;
     max-width: 1400px;
     margin-top: 1.5rem;
-    padding: 0.5rem;
+    padding: 1rem;
 }
 
 .article_content {
@@ -189,4 +191,24 @@ footer  {
     content: "";
     clear: both;
     display: table;
+  }
+
+  @media only screen and (max-width: 768px) {
+    /* For mobile phones: */
+    [class="showcaseimg"] {
+        float: none;
+        position: relative;
+        margin: auto;
+        margin-bottom: 1em;
+        width: 65%;
+    }
+
+    [class="article_img"] {
+        float: none;
+        top: auto;
+        display: block;
+        margin: auto;
+        margin-bottom: 1em;
+        width: 100%;
+      }
   }
