@@ -124,7 +124,7 @@ def events():
 @app.route("/about")
 def about():
 
-    # render about page #
+    # render about page with info already fetched from db in the page_info content #
 
      return render_template("/about.html", pageinfo = page_info, journal = journal_exist, events = events_exist)
 
@@ -150,6 +150,13 @@ def contact():
             return render_template("/contact.html", pageinfo = page_info, journal = journal_exist, events = events_exist, flash_message = "Sorry! There was an error sending the message...")
         
         return render_template("/contact.html", pageinfo = page_info, journal = journal_exist, events = events_exist, flash_message = "Message sent. Thank you!")
+
+
+@app.route("/galleries")
+def gallery():
+
+    return render_template("/gallery.html", pageinfo = page_info, journal = journal_exist, events = events_exist)
+
 
 
 ####### FOR USER APP MANAGEMENT #######
