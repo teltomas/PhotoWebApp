@@ -45,9 +45,10 @@ journal_exist = False
 events_exist = False
 
 conn = get_db_connection()
-page_info = conn.execute('SELECT * FROM page_info WHERE id = 1;').fetchone()
-journals = conn.execute('SELECT * FROM articles WHERE type = "journal";').fetchone()
-events = conn.execute('SELECT * FROM articles WHERE type = "event";').fetchone()
+page_info = conn.execute('SELECT * FROM page_info WHERE id = 1;').fetchone() # for the general page info #
+journals = conn.execute('SELECT * FROM articles WHERE type = "journal";').fetchone() # determine if there are journals in db to activate the journal nav item #
+events = conn.execute('SELECT * FROM articles WHERE type = "event";').fetchone() # determine if there are events in db to activate the events nav item #
+gall_nav = conn.execute('SELECT id, title FROM galleries WHERE id != 1;').fetchall() # get how many galleries exist in db to fill the galleries nav itens #
 
 conn.close()
 
@@ -85,7 +86,12 @@ def main():
     sc_img = conn.execute('SELECT * FROM gall_img_index WHERE gall_id = 1;').fetchall()
     conn.close()
 
-    return render_template("/main.html", pageinfo = page_info, journal = journal_exist, events = events_exist, imgs = sc_img)
+    return render_template("/main.html",
+                            pageinfo = page_info,
+                            journal = journal_exist,
+                            events = events_exist,
+                            galls = gall_nav,
+                            imgs = sc_img)
 
 
 @app.route("/journal")
@@ -99,9 +105,21 @@ def journal():
     conn.close()
 
     if len(journals) < 1:
-        return render_template("/article.html", pageinfo = page_info, journal = journal_exist, events = events_exist, page_type = "Journal", flash_message = "No journal intros to display.")
+        return render_template("/article.html",
+                                pageinfo = page_info,
+                                journal = journal_exist, 
+                                events = events_exist, 
+                                galls = gall_nav,
+                                page_type = "Journal", 
+                                flash_message = "No journal intros to display.")
 
-    return render_template("/article.html", pageinfo = page_info, page_type = "Journal", journal = journal_exist, events = events_exist, articles = journals)
+    return render_template("/article.html", 
+                           pageinfo = page_info, 
+                           page_type = "Journal", 
+                           journal = journal_exist, 
+                           events = events_exist, 
+                           galls = gall_nav,
+                           articles = journals)
 
 
 @app.route("/events")
@@ -115,9 +133,21 @@ def events():
     conn.close()
 
     if not events:
-        return render_template("/article.html", pageinfo = page_info, page_type = "Events", journal = journal_exist, events = events_exist, flash_message = "No events to display yet.")
+        return render_template("/article.html", 
+                               pageinfo = page_info, 
+                               page_type = "Events", 
+                               journal = journal_exist, 
+                               events = events_exist, 
+                               galls = gall_nav,
+                               flash_message = "No events to display yet.")
 
-    return render_template("/article.html", pageinfo = page_info, journal = journal_exist, page_type = "Events", events = events_exist, articles = events)
+    return render_template("/article.html", 
+                           pageinfo = page_info, 
+                           journal = journal_exist, 
+                           page_type = "Events", 
+                           events = events_exist, 
+                           galls = gall_nav,
+                           articles = events)
 
 
 
@@ -126,7 +156,11 @@ def about():
 
     # render about page with info already fetched from db in the page_info content #
 
-     return render_template("/about.html", pageinfo = page_info, journal = journal_exist, events = events_exist)
+     return render_template("/about.html", 
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav)
 
 
 @app.route("/contact", methods=["GET", "POST"])
@@ -135,7 +169,11 @@ def contact():
     if request.method == "GET":
     # render contact page in case of get method #
 
-        return render_template("/contact.html", pageinfo = page_info, journal = journal_exist, events = events_exist)
+        return render_template("/contact.html", 
+                               pageinfo = page_info, 
+                               journal = journal_exist, 
+                               galls = gall_nav,
+                               events = events_exist)
     
     if request.method == "POST":
 
@@ -147,15 +185,57 @@ def contact():
             msg.body = (request.form.get("message") + "\n\nSender email: \n" + request.form.get("email"))
             mail.send(msg)
         except:
-            return render_template("/contact.html", pageinfo = page_info, journal = journal_exist, events = events_exist, flash_message = "Sorry! There was an error sending the message...")
+            return render_template("/contact.html", 
+                                   pageinfo = page_info, 
+                                   journal = journal_exist, 
+                                   events = events_exist, 
+                                   galls = gall_nav,
+                                   flash_message = "Sorry! There was an error sending the message...")
         
-        return render_template("/contact.html", pageinfo = page_info, journal = journal_exist, events = events_exist, flash_message = "Message sent. Thank you!")
+        return render_template("/contact.html", 
+                               pageinfo = page_info, 
+                               journal = journal_exist, 
+                               events = events_exist, 
+                               galls = gall_nav,
+                               flash_message = "Message sent. Thank you!")
 
 
 @app.route("/galleries")
 def gallery():
 
-    return render_template("/gallery.html", pageinfo = page_info, journal = journal_exist, events = events_exist)
+    # fetch from address input the gallery id and get from the db the photos from the gallery requested #
+    gall_id = request.args.get('id', '')
+
+    conn = get_db_connection()
+    gall_info = conn.execute('SELECT * FROM galleries WHERE id = ?', (gall_id,)).fetchone()
+    imgs_info = conn.execute('SELECT * FROM gall_img_index JOIN images ON gall_img_index.img_id = images.id WHERE gall_id = ? ORDER BY img_id DESC', (gall_id,)).fetchall()
+    conn.close()
+
+    imgs_col1 = []
+    imgs_col2 = []
+    imgs_col3 = []
+
+    if imgs_info:
+        i = 0
+        while i < len(imgs_info):
+            imgs_col1.append(imgs_info[i])
+            if i+1 < len(imgs_info): 
+                imgs_col2.append(imgs_info[i+1])
+            if i+2 < len(imgs_info): 
+                imgs_col3.append(imgs_info[i+2])
+            i = i + 3
+
+
+    return render_template("/gallery.html", 
+                           pageinfo = page_info, 
+                           journal = journal_exist, 
+                           events = events_exist,
+                           galls = gall_nav,
+                           gall_info = gall_info,
+                           imgs_info = imgs_info,
+                           imgs_col1 = imgs_col1,
+                           imgs_col2 = imgs_col2,
+                           imgs_col3 = imgs_col3)
 
 
 

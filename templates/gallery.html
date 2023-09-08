@@ -1,11 +1,62 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    {{ gallery_name }}
+    {{ gall_info.title }}
+{% endblock %}
+
+<!-- photo gallery viewer from -->
+{% block script %}
+<script></script>
+<script>
+    
+</script>
+{% endblock %}
+
+
+{% block extracss %}
+
 {% endblock %}
 
 {% block main %}
 
+<div class="maindescr"><br/>
+
+    <h3>{{ gall_info.title }}</h3>
+
+    <p>
+        {{ gall_info.description }}
+    </p>
+</div>
+
+<div class="photo_gallery">       
+    
+    <div class="photo_column">
+    {% for row in imgs_col1 %}
+        
+        <img loading="lazy" class="gall_photo" alt="{{ row.alt }}" src="static/images/{{ row.img_id }}.jpg">
+                
+    {% endfor %}
+    </div>
+
+    <div class="photo_column">
+        {% for row in imgs_col2 %}
+        
+        <img loading="lazy" class="gall_photo" alt="{{ row.alt }}" src="static/images/{{ row.img_id }}.jpg">  
+        
+            
+    
+        {% endfor %}
+    </div>
+
+    <div class="photo_column">
+        {% for row in imgs_col3 %}
+        
+        <img loading="lazy" class="gall_photo" alt="{{ row.alt }}" src="static/images/{{ row.img_id }}.jpg">    
+        
+        {% endfor %}
+    </div>
+
+</div>
 
 
 
