@@ -249,3 +249,53 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_FILE_THRESHOLD'] = 10  
 
 Session(app)
+
+@app.route("/management")
+def mngmt():
+
+    return render_template("mngmt_main.html",
+                           pageinfo = page_info, 
+                           journal = journal_exist, 
+                           events = events_exist,
+                           galls = gall_nav)
+
+@app.route("/jnl_mngt")
+def jn_mngmt():
+
+    return render_template("jnl_mngt.html",
+                           pageinfo = page_info, 
+                           journal = journal_exist, 
+                           events = events_exist,
+                           galls = gall_nav)
+
+@app.route("/jn_new", methods=["GET", "POST"])
+def jn_new():
+
+    if request.method == "GET":
+
+        return render_template("jn_new.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav)
+    
+
+@app.route("/ev_mngt")
+def ev_mngmt():
+
+    return render_template("ev_mngt.html",
+                           pageinfo = page_info, 
+                           journal = journal_exist, 
+                           events = events_exist,
+                           galls = gall_nav)
+
+@app.route("/ev_new", methods=["GET", "POST"])
+def ev_new():
+
+    if request.method == "GET":
+
+        return render_template("ev_new.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav)

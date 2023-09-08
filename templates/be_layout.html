@@ -12,11 +12,67 @@
 
         <link href="/static/styles.css" rel="stylesheet">
 
-        <title>{{ pagename }}: Management</title>
+        
+
+        <title>{{ pageinfo.page_name }}: {% block title %}{% endblock %}</title>
 
     </head>
 
     <body>
+        
+        <nav>
+                        
+            <ul>
+
+                <li><a class="menu" target="new" href="/main">Home</a></li>
+
+                <div class="dropdown">
+
+                    <li class="menu">Galleries</li>
+                    {% if galls %}
+                        <div class="dropdown-content">
+                            {% for gall in galls %}
+                            <a target="new" href="galleries?id={{ gall.id }}">{{ gall.title }}</a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+
+                {% if journal %}
+                <li><a target="new" class="menu" href="/journal">Journal</a></li>
+                {% endif %}
+                {% if events %}
+                <li><a target="new" class="menu" href="/events">Events</a></li>
+                {% endif %}
+                <li><a target="new" class="menu" href="/about">About</a></li>
+                <li><a target="new" class="menu" href="/contact">Contact</a></li>
+
+            </ul>
+        </nav>
+
+        <header></header>
+
+        <!--if session-->
+
+        <ul>
+            <a href="gall_mngt"><li class="menu">Manage Galleries</li></a>
+            <a href="jnl_mngt"><li class="menu">Manage Journal</li></a>
+            <a href="ev_mngt"><li class="menu">Manage Events</li></a>
+            <a href="pg_mngt"><li class="menu">Manage User and Page Info</li></a>
+        </ul>
+
+        <!--endif session-->
+
+        <div class="container">
+
+            {% block main %}{% endblock %}
+
+        </div>
+  
+        <footer>
+            <p style="padding: 40px;"><a class="menuf" href="">Legal Disclaimers</a> | <a class="menuf" href="">Copyright Disclaimers</a></p>
+        </footer>
 
     </body>
 

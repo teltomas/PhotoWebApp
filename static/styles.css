@@ -320,6 +320,7 @@ background-color: #3b3b3b;
     max-height: 100%; 
 }
 
+/* photo content overlay as instructed in the following video https://www.youtube.com/watch?v=hr4JiDr7Aec */
 
 .gall_photocontent {
     width: 100%;
@@ -339,6 +340,26 @@ background-color: #3b3b3b;
     opacity: 1;
 }
 
+.mngt_container {
+    margin-top: 3rem;
+    margin-bottom: 2rem;
+}
+
+
+
+.limngt {
+    display: block;
+    margin-top: 1rem;
+    width: 40%;
+    padding: 2rem;
+    color: #3b3b3b;
+    border: solid 1px #727272;
+}
+
+.limngt:hover {
+    background-color:#727272;
+    color:#f0f0f0;
+}
 
 @media only screen and (max-width: 850px) {
     [class="photolink"] {

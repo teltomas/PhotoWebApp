@@ -32,7 +32,9 @@
                 <img loading="lazy" class="gall_photo" alt="{{ row.alt }}" src="static/images/{{ row.img_id }}.jpg">
                 <div class="gall_photocontent">
                     <h6>{{ row.title }}</h6>
+                    {% if row.description %}
                     <p class="text_photocontent">{{ row.description }}</p>
+                    {% endif %}
                 </div>
             </div>
         </a>
@@ -48,7 +50,9 @@
                 <img loading="lazy" class="gall_photo" alt="{{ row.alt }}" src="static/images/{{ row.img_id }}.jpg">  
                 <div class="gall_photocontent">
                     <h6>{{ row.title }}</h6>
+                    {% if row.description %}
                     <p class="text_photocontent">{{ row.description }}</p>
+                    {% endif %}
                 </div>
             </div>
         </a>
@@ -65,7 +69,9 @@
             <img loading="lazy" class="gall_photo" alt="{{ row.alt }}" src="static/images/{{ row.img_id }}.jpg">    
                 <div class="gall_photocontent">
                     <h6>{{ row.title }}</h6>
+                    {% if row.description %}
                     <p class="text_photocontent">{{ row.description }}</p>
+                    {% endif %}
                 </div>
             </div>
         </a>

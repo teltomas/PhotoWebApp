@@ -1,0 +1,31 @@
+{% extends "be_layout.html" %}
+
+{% block title %}
+    New Event
+{% endblock %}
+
+{% block main %}
+
+<div class="mngt_container">
+
+    <h4>New Event</h4>
+
+    <br/>
+    <br/>
+
+    <form action="/ev_new" method="post" id="ev_new" name="ev_new">
+
+        <input type="text" name="title" id="title" maxlength="50" placeholder="Title..." required>
+        <br/>
+        <textarea type="text" name="content" id="content" placeholder="Content text..." required></textarea>
+        <br/>
+        <input type="text" name="link" id="link" placeholder="Content Link...">
+        <br/>
+        <!-- image input -->
+        <input type="submit">
+
+    </form>
+
+</div>
+
+{% endblock %}
