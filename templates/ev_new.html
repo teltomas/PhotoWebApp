@@ -8,12 +8,12 @@
 
 <div class="mngt_container">
 
-    <h4>New Event</h4>
+    <h4 style="text-decoration: none;">New Event</h4>
 
     <br/>
     <br/>
 
-    <form action="/ev_new" method="post" id="ev_new" name="ev_new">
+    <form action="/ev_new" enctype="multipart/form-data" method="post" id="ev_new" name="ev_new">
 
         <input type="text" name="title" id="title" maxlength="50" placeholder="Title..." required>
         <br/>
@@ -21,7 +21,11 @@
         <br/>
         <input type="text" name="link" id="link" placeholder="Content Link...">
         <br/>
-        <!-- image input -->
+        <br/>
+        <label for="img">Upload image (optional - only jpg or jpeg):&nbsp;</label>
+        <input type="file" id="img" name="img" accept=".jpg, .jpeg">
+        <br/>
+        <br/>
         <input type="submit">
 
     </form>

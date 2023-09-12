@@ -1,19 +1,26 @@
+import os
 import sqlite3
 from datetime import datetime
-from flask import Flask, redirect, render_template, session, request
+from flask import Flask, redirect, render_template, session, request, abort
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_mail import Mail, Message
 
 
 from front import date
-# from back import
+from back import validate_image
 
 # configure app
 app = Flask(__name__)
 
 # Custom filter
 app.jinja_env.filters["date"] = date
+
+# Config the app file upload handling: max size 10MB; file type restricted to *.jpg, *.jpeg and *.ico; file upload folder path 
+
+app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 * 10
+app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.jpeg', '.ico']
+app.config['UPLOAD_PATH'] = '/static/images/'
 
 
 # configure database management
@@ -46,8 +53,8 @@ events_exist = False
 
 conn = get_db_connection()
 page_info = conn.execute('SELECT * FROM page_info WHERE id = 1;').fetchone() # for the general page info #
-journals = conn.execute('SELECT * FROM articles WHERE type = "journal";').fetchone() # determine if there are journals in db to activate the journal nav item #
-events = conn.execute('SELECT * FROM articles WHERE type = "event";').fetchone() # determine if there are events in db to activate the events nav item #
+journals = conn.execute('SELECT * FROM articles WHERE type = "journal" AND archived = 0;').fetchone() # determine if there are journals in db to activate the journal nav item #
+events = conn.execute('SELECT * FROM articles WHERE type = "event" AND archived = 0;').fetchone() # determine if there are events in db to activate the events nav item #
 gall_nav = conn.execute('SELECT id, title FROM galleries WHERE id != 1;').fetchall() # get how many galleries exist in db to fill the galleries nav itens #
 
 conn.close()
@@ -279,6 +286,90 @@ def jn_new():
                             events = events_exist,
                             galls = gall_nav)
     
+    if request.method == "POST":
+
+        if request.form.get("title"):
+            title = request.form.get("title")
+        else:
+            return render_template("jn_new.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            flash_message = "Title required!")
+        
+        if request.form.get("content"):
+            content = request.form.get("content")
+        else:
+            return render_template("jn_new.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            flash_message = "Content text required!")
+        
+        if request.form.get("link"):
+            link = request.form.get("link")
+        else:
+            link = None
+
+        # add journal info to the DB and get the article ID #
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('INSERT INTO articles (type, title, content, archived, link) VALUES (?, ?, ?, ?, ?);', ("journal", title, content, 0, link,))
+        conn.commit()
+        ar_id = conn.execute('SELECT id FROM articles ORDER BY id DESC;').fetchone()
+        conn.close()
+
+        ar_id = ar_id['id']
+
+
+        # img file upload handling implemented as shown here https://blog.miguelgrinberg.com/post/handling-file-uploads-with-flask #
+
+        if request.files['img']:
+            
+            img = request.files['img']
+            
+            filename = img.filename
+
+            if filename != '':
+
+                file_ext = os.path.splitext(filename)[1]
+                if file_ext not in app.config['UPLOAD_EXTENSIONS'] or \
+                    file_ext != validate_image(img.stream):
+                    
+                    return render_template("jn_new.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            flash_message = "New article successfully posted to Journal BUT invalid image discarded.")
+
+        fname = "article" + str(ar_id) + ".jpg"
+        dbname= "article" + str(ar_id)
+
+        # change path with -- app.config['UPLOAD_PATH'] -- #
+
+        cwd = os.getcwd()
+
+        img.save(os.path.join((cwd+"/static/images/"), fname)) 
+
+        # update article in db with image name #
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('UPDATE articles SET image = ? WHERE id = ?;', (dbname, ar_id,))
+        conn.commit()
+        conn.close()
+
+        return render_template("jn_new.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            flash_message = "New article successfully posted to Journal")
+
 
 @app.route("/ev_mngt")
 def ev_mngmt():
@@ -299,3 +390,87 @@ def ev_new():
                             journal = journal_exist, 
                             events = events_exist,
                             galls = gall_nav)
+    
+    if request.method == "POST":
+
+        if request.form.get("title"):
+            title = request.form.get("title")
+        else:
+            return render_template("ev_new.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            flash_message = "Title required!")
+        
+        if request.form.get("content"):
+            content = request.form.get("content")
+        else:
+            return render_template("ev_new.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            flash_message = "Content text required!")
+        
+        if request.form.get("link"):
+            link = request.form.get("link")
+        else:
+            link = None
+
+        # add event info to the DB and get the article ID #
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('INSERT INTO articles (type, title, content, archived, link) VALUES (?, ?, ?, ?, ?);', ("event", title, content, 0, link,))
+        conn.commit()
+        ar_id = conn.execute('SELECT id FROM articles ORDER BY id DESC;').fetchone()
+        conn.close()
+
+        ar_id = ar_id['id']
+
+
+        # img file upload handling implemented as shown here https://blog.miguelgrinberg.com/post/handling-file-uploads-with-flask #
+
+        if request.files['img']:
+            
+            img = request.files['img']
+            
+            filename = img.filename
+
+            if filename != '':
+
+                file_ext = os.path.splitext(filename)[1]
+                if file_ext not in app.config['UPLOAD_EXTENSIONS'] or \
+                    file_ext != validate_image(img.stream):
+                    
+                    return render_template("ev_new.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            flash_message = "New article successfully posted to Events BUT invalid image discarded.")
+
+        fname = "article" + str(ar_id) + ".jpg"
+        dbname= "article" + str(ar_id)
+
+        # change path with -- app.config['UPLOAD_PATH'] -- #
+
+        cwd = os.getcwd()
+
+        img.save(os.path.join((cwd+"/static/images/"), fname)) 
+
+        # update article in db with image name #
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('UPDATE articles SET image = ? WHERE id = ?;', (dbname, ar_id,))
+        conn.commit()
+        conn.close()
+
+        return render_template("ev_new.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            flash_message = "New article successfully posted to Events")

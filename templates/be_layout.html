@@ -8,7 +8,7 @@
         <meta name="viewport" content="initial-scale=1, width=device-width">
 
         
-        <!-- <link href="/static/favicon.ico" rel="icon"> -->
+        <!-- <link href="/static/images/favicon.ico" rel="icon"> -->
 
         <link href="/static/styles.css" rel="stylesheet">
 
@@ -24,7 +24,7 @@
                         
             <ul>
 
-                <li><a class="menu" target="new" href="/main">Home</a></li>
+                <li><a class="menu" target="_blank" href="/main">Home</a></li>
 
                 <div class="dropdown">
 
@@ -32,7 +32,7 @@
                     {% if galls %}
                         <div class="dropdown-content">
                             {% for gall in galls %}
-                            <a target="new" href="galleries?id={{ gall.id }}">{{ gall.title }}</a>
+                            <a target="_blank" href="galleries?id={{ gall.id }}">{{ gall.title }}</a>
                             {% endfor %}
                         </div>
                     {% endif %}
@@ -40,13 +40,13 @@
 
 
                 {% if journal %}
-                <li><a target="new" class="menu" href="/journal">Journal</a></li>
+                <li><a target="_blank" class="menu" href="/journal">Journal</a></li>
                 {% endif %}
                 {% if events %}
-                <li><a target="new" class="menu" href="/events">Events</a></li>
+                <li><a target="_blank" class="menu" href="/events">Events</a></li>
                 {% endif %}
-                <li><a target="new" class="menu" href="/about">About</a></li>
-                <li><a target="new" class="menu" href="/contact">Contact</a></li>
+                <li><a target="_blank" class="menu" href="/about">About</a></li>
+                <li><a target="_blank" class="menu" href="/contact">Contact</a></li>
 
             </ul>
         </nav>

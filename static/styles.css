@@ -45,6 +45,7 @@ h6 {
     color: white;
 }
 
+
 p {
     margin-top: 0.5em;
 }
@@ -343,6 +344,7 @@ background-color: #3b3b3b;
 .mngt_container {
     margin-top: 3rem;
     margin-bottom: 2rem;
+    padding: 0.5rem;
 }
 
 
@@ -354,6 +356,7 @@ background-color: #3b3b3b;
     padding: 2rem;
     color: #3b3b3b;
     border: solid 1px #727272;
+    border-radius: 5px;
 }
 
 .limngt:hover {
