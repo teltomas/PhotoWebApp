@@ -1,49 +1,42 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    {{ page_type }}
+    {{ page_type | capital }}
 {% endblock %}
 
 {% block main %}
 
 <div class="article_container">
 
-    <h3>{{ page_type }}</h3>
+    <h3>{{ page_type | capital }}</h3>
 
     {% if flash_message %}
         <br/>
-
-        
             <h4 style="text-decoration: none;">{{ flash_message }}</h4>
-        
-
         <br/>
     {% endif %}
-
     
     {% if articles %}
 
         {% for article in articles %}
 
         <div class="article_content">
-                       
-            
-            
 
                 <h4>{{ article.title }}</h4>
                 <h5>{{ article.date | date }}</h5>
 
                 <div class="clearfix">
+
                     {% if article.image %}
-                    <img class="article_img" src="static/images/{{ article.image }}.jpg">
+                        <img class="article_img" src="static/images/{{ article.image }}.jpg">
                     {% endif %}
 
-                <p>{{ article.content }}</p>
-                <br/>
-                {% if article.link %}
-                <a class="menuf" href="{{ article.link }}"><h5>See more through here...</h5></a>
-                {% endif %}
+                    <p>{{ article.content }}</p>
 
+                    <br/>
+                    {% if article.link %}
+                        	<a class="menuf" href="{{ article.link }}" target="_blank"><h5>See more through here...</h5></a>
+                    {% endif %}
                 
                 </div>
 

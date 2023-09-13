@@ -7,6 +7,11 @@
      font-size: 18px;
 }
 
+a:link, a:hover, a:active, a:visited {
+    text-decoration: none;
+    color: inherit;
+}
+
 body {
     background-color: #f0f0f0;
     font-family: inter;
@@ -14,9 +19,6 @@ body {
     color:#3b3b3b;
 }
 
-a:link, a:visited, a:active, a:hover {
-    text-decoration: none;
-}
 
 h2 {
     margin: 0.5rem;
@@ -43,6 +45,10 @@ h5 {
 h6 {
     font-size: 1.2em;
     color: white;
+}
+
+h1 {
+    font-size: 1.2em;
 }
 
 
@@ -80,7 +86,6 @@ li {
 
 .menu {
     color: #727272;
-    text-decoration: none;
 }
   
 .menu:hover {
@@ -342,8 +347,8 @@ background-color: #3b3b3b;
 }
 
 .mngt_container {
-    margin-top: 3rem;
-    margin-bottom: 2rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
     padding: 0.5rem;
 }
 
@@ -362,6 +367,35 @@ background-color: #3b3b3b;
 .limngt:hover {
     background-color:#727272;
     color:#f0f0f0;
+}
+
+.entriesmng {
+    max-width: 90%;
+    max-height: 800px;
+    margin: auto;
+    border: 1px solid #3b3b3b;
+    border-radius: 5px;
+    margin-top: 1rem;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.artmngcontainer {
+    text-align: left;
+    padding: 0.5rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #727272;
+}
+
+.artmngcontainer:hover {
+    background-color: #ececec;
+}
+
+.mngbutton {
+    display: inline;
+    padding: 0.3rem;
+    margin: 0.3rem;
 }
 
 @media only screen and (max-width: 850px) {

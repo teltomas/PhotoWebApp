@@ -26,7 +26,7 @@
                         
             <ul>
 
-                <li><a class="menu" href="/main">Home</a></li>
+                <li class="menu"><a href="/main">Home</a></li>
 
                 <div class="dropdown">
 
@@ -42,13 +42,13 @@
 
 
                 {% if journal %}
-                <li><a class="menu" href="/journal">Journal</a></li>
+                <li class="menu"><a href="/article?artp=journal">Journal</a></li>
                 {% endif %}
                 {% if events %}
-                <li><a class="menu" href="/events">Events</a></li>
+                <li class="menu"><a href="/article?artp=event">Events</a></li>
                 {% endif %}
-                <li><a class="menu" href="/about">About</a></li>
-                <li><a class="menu" href="/contact">Contact</a></li>
+                <li class="menu"><a href="/about">About</a></li>
+                <li class="menu"><a href="/contact">Contact</a></li>
 
             </ul>
         </nav>

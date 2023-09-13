@@ -7,7 +7,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from flask_mail import Mail, Message
 
 
-from front import date
+from front import date, capital
 from back import validate_image
 
 # configure app
@@ -15,6 +15,7 @@ app = Flask(__name__)
 
 # Custom filter
 app.jinja_env.filters["date"] = date
+app.jinja_env.filters["capital"] = capital
 
 # Config the app file upload handling: max size 10MB; file type restricted to *.jpg, *.jpeg and *.ico; file upload folder path 
 
@@ -100,62 +101,37 @@ def main():
                             galls = gall_nav,
                             imgs = sc_img)
 
+@app.route("/article")
+def articles():
 
-@app.route("/journal")
-def journal():
+    # render article page #
 
-    # render journal page #
+    # get from the request the type of article to render #
+    ar_type = request.args.get('artp', '')
 
-    # get from db the journal intros to display in page #
+    # get from db the article intros to display in page #
     conn = get_db_connection()
-    journals = conn.execute('SELECT * FROM articles WHERE type = "journal" AND archived = False ORDER BY date DESC;').fetchall()
+    articles = conn.execute('SELECT * FROM articles WHERE type = ? AND archived = 0 ORDER BY date DESC;', (ar_type,)).fetchall()
     conn.close()
 
-    if len(journals) < 1:
+    # display message if there are no articles #
+    if len(articles) < 1:
         return render_template("/article.html",
                                 pageinfo = page_info,
                                 journal = journal_exist, 
                                 events = events_exist, 
                                 galls = gall_nav,
-                                page_type = "Journal", 
-                                flash_message = "No journal intros to display.")
-
+                                page_type = ar_type, 
+                                flash_message = "No " + ar_type + " intros to display.")
+    
+    # render page with articles #
     return render_template("/article.html", 
                            pageinfo = page_info, 
-                           page_type = "Journal", 
+                           page_type = ar_type, 
                            journal = journal_exist, 
                            events = events_exist, 
                            galls = gall_nav,
-                           articles = journals)
-
-
-@app.route("/events")
-def events():
-
-    # render events page #
-
-    # get from db the events intros to display in page #
-    conn = get_db_connection()
-    events = conn.execute('SELECT * FROM articles WHERE type = "event" AND archived = False ORDER BY date DESC;').fetchall()
-    conn.close()
-
-    if not events:
-        return render_template("/article.html", 
-                               pageinfo = page_info, 
-                               page_type = "Events", 
-                               journal = journal_exist, 
-                               events = events_exist, 
-                               galls = gall_nav,
-                               flash_message = "No events to display yet.")
-
-    return render_template("/article.html", 
-                           pageinfo = page_info, 
-                           journal = journal_exist, 
-                           page_type = "Events", 
-                           events = events_exist, 
-                           galls = gall_nav,
-                           articles = events)
-
+                           articles = articles)
 
 
 @app.route("/about")
@@ -218,6 +194,7 @@ def gallery():
     imgs_info = conn.execute('SELECT * FROM gall_img_index JOIN images ON gall_img_index.img_id = images.id WHERE gall_id = ? ORDER BY img_id DESC', (gall_id,)).fetchall()
     conn.close()
 
+    # split the quantity of images in three diferent arrays to display in the page grid #
     imgs_col1 = []
     imgs_col2 = []
     imgs_col3 = []
@@ -232,7 +209,7 @@ def gallery():
                 imgs_col3.append(imgs_info[i+2])
             i = i + 3
 
-
+    # render the gallery page #
     return render_template("/gallery.html", 
                            pageinfo = page_info, 
                            journal = journal_exist, 
@@ -257,6 +234,8 @@ app.config['SESSION_FILE_THRESHOLD'] = 10
 
 Session(app)
 
+
+
 @app.route("/management")
 def mngmt():
 
@@ -266,147 +245,186 @@ def mngmt():
                            events = events_exist,
                            galls = gall_nav)
 
-@app.route("/jnl_mngt")
-def jn_mngmt():
+@app.route("/ar_mngt", methods=["GET", "POST"])
+def ar_mngmt():
 
-    return render_template("jnl_mngt.html",
-                           pageinfo = page_info, 
-                           journal = journal_exist, 
-                           events = events_exist,
-                           galls = gall_nav)
-
-@app.route("/jn_new", methods=["GET", "POST"])
-def jn_new():
+    if request.args.get('artp', ''):
+        ar_type = request.args.get('artp', '')
 
     if request.method == "GET":
+ 
+        conn = get_db_connection()
+        entries = conn.execute('SELECT id, title, date, content FROM articles WHERE type = ? AND archived = 0 ORDER BY date DESC;', (ar_type,)).fetchall()
+        conn.close()
 
-        return render_template("jn_new.html",
-                            pageinfo = page_info, 
-                            journal = journal_exist, 
-                            events = events_exist,
-                            galls = gall_nav)
-    
-    if request.method == "POST":
+        flash_message = None
 
-        if request.form.get("title"):
-            title = request.form.get("title")
-        else:
-            return render_template("jn_new.html",
+        if not entries:
+            flash_message = "No entries to display."
+
+        for row in entries:
+            if len(row['content'])>150:
+                row['content'] = row['content'][:150]+"..."
+
+        return render_template("ar_mngt.html",
                             pageinfo = page_info, 
                             journal = journal_exist, 
                             events = events_exist,
                             galls = gall_nav,
+                            entries = entries,
+                            ar_type = ar_type,
+                            flash_message = flash_message)
+    
+    
+    if request.method == "POST":
+
+        ar_id = request.form.get("id")
+
+        action = int(request.args.get('action', ''))
+
+        conn = get_db_connection()
+        article = conn.execute('SELECT * FROM articles WHERE id = ?;', (ar_id,)).fetchone()
+        conn.close()
+
+        ar_type = article['type']
+
+        if action == 1: # edit article entry #
+  
+            # render article edit template with article data #
+            return render_template("edit_entry.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            article = article)
+        
+        if action == 2: # archive article entry #
+
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('UPDATE articles SET archived = ? WHERE id = ?;', (True, ar_id,))
+            conn.commit()
+            conn.close()
+        
+        if action == 3: # save edited article entry #
+
+            # get and confirm title contents #
+            if request.form.get("title"):
+                title = request.form.get("title")
+            else:
+                return render_template("edit_entry.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            article = article,
+                            flash_message = "Title required!")
+
+            # get and confirm main contents #
+            if request.form.get("content"):
+                content = request.form.get("content")
+            else:
+                return render_template("edit_entry.html",
+                                pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                article = article,
+                                flash_message = "Content text required!")
+
+            # get and confirm link contents - set null if empty #
+            if request.form.get("link"):
+                link = request.form.get("link")
+            else:
+                link = None
+
+            # update info in the DB #
+
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('UPDATE articles SET title = ?, content = ?, link = ? WHERE id = ?;', (title, content, link, ar_id,))
+            conn.commit()
+            conn.close()
+
+            # img file upload handling implemented as shown here https://blog.miguelgrinberg.com/post/handling-file-uploads-with-flask #
+
+            if request.files['img']:
+                
+                img = request.files['img']
+                
+                filename = img.filename
+
+                if filename != '':
+
+                    file_ext = os.path.splitext(filename)[1]
+                    if file_ext not in app.config['UPLOAD_EXTENSIONS'] or \
+                        file_ext != validate_image(img.stream):
+                        
+                        return render_template("ar_mngt.html",
+                                pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                ar_type = ar_type,
+                                flash_message = "New article successfully posted to Journal BUT invalid image discarded.")
+
+                fname = "article" + str(ar_id) + ".jpg"
+                dbname= "article" + str(ar_id)
+
+                # change path with -- app.config['UPLOAD_PATH'] -- #
+
+                cwd = os.getcwd()
+
+                img.save(os.path.join((cwd+"/static/images/"), fname)) 
+
+                # update article in db with image name #
+
+                conn = get_db_connection()
+                cur = conn.cursor()
+                cur.execute('UPDATE articles SET image = ? WHERE id = ?;', (dbname, ar_id,))
+                conn.commit()
+                conn.close()
+
+        print(ar_type)
+        return redirect("ar_mngt?artp=" + ar_type)
+    
+
+@app.route("/ar_new", methods=["GET", "POST"])
+def ar_new():
+
+    if not request.args.get('artp', '') and not request.form.get("ar_type"):
+        return redirect("management")
+
+    ar_type = request.args.get('artp', '')
+
+    if request.method == "GET":
+
+        return render_template("ar_new.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            ar_type = ar_type,
+                            galls = gall_nav)
+    
+    if request.method == "POST":
+
+        ar_type = request.form.get("ar_type")
+
+        if request.form.get("title"):
+            title = request.form.get("title")
+        else:
+            return render_template("ar_new.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            ar_type = ar_type,
                             flash_message = "Title required!")
         
         if request.form.get("content"):
             content = request.form.get("content")
         else:
-            return render_template("jn_new.html",
-                            pageinfo = page_info, 
-                            journal = journal_exist, 
-                            events = events_exist,
-                            galls = gall_nav,
-                            flash_message = "Content text required!")
-        
-        if request.form.get("link"):
-            link = request.form.get("link")
-        else:
-            link = None
-
-        # add journal info to the DB and get the article ID #
-
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute('INSERT INTO articles (type, title, content, archived, link) VALUES (?, ?, ?, ?, ?);', ("journal", title, content, 0, link,))
-        conn.commit()
-        ar_id = conn.execute('SELECT id FROM articles ORDER BY id DESC;').fetchone()
-        conn.close()
-
-        ar_id = ar_id['id']
-
-
-        # img file upload handling implemented as shown here https://blog.miguelgrinberg.com/post/handling-file-uploads-with-flask #
-
-        if request.files['img']:
-            
-            img = request.files['img']
-            
-            filename = img.filename
-
-            if filename != '':
-
-                file_ext = os.path.splitext(filename)[1]
-                if file_ext not in app.config['UPLOAD_EXTENSIONS'] or \
-                    file_ext != validate_image(img.stream):
-                    
-                    return render_template("jn_new.html",
-                            pageinfo = page_info, 
-                            journal = journal_exist, 
-                            events = events_exist,
-                            galls = gall_nav,
-                            flash_message = "New article successfully posted to Journal BUT invalid image discarded.")
-
-        fname = "article" + str(ar_id) + ".jpg"
-        dbname= "article" + str(ar_id)
-
-        # change path with -- app.config['UPLOAD_PATH'] -- #
-
-        cwd = os.getcwd()
-
-        img.save(os.path.join((cwd+"/static/images/"), fname)) 
-
-        # update article in db with image name #
-
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute('UPDATE articles SET image = ? WHERE id = ?;', (dbname, ar_id,))
-        conn.commit()
-        conn.close()
-
-        return render_template("jn_new.html",
-                            pageinfo = page_info, 
-                            journal = journal_exist, 
-                            events = events_exist,
-                            galls = gall_nav,
-                            flash_message = "New article successfully posted to Journal")
-
-
-@app.route("/ev_mngt")
-def ev_mngmt():
-
-    return render_template("ev_mngt.html",
-                           pageinfo = page_info, 
-                           journal = journal_exist, 
-                           events = events_exist,
-                           galls = gall_nav)
-
-@app.route("/ev_new", methods=["GET", "POST"])
-def ev_new():
-
-    if request.method == "GET":
-
-        return render_template("ev_new.html",
-                            pageinfo = page_info, 
-                            journal = journal_exist, 
-                            events = events_exist,
-                            galls = gall_nav)
-    
-    if request.method == "POST":
-
-        if request.form.get("title"):
-            title = request.form.get("title")
-        else:
-            return render_template("ev_new.html",
-                            pageinfo = page_info, 
-                            journal = journal_exist, 
-                            events = events_exist,
-                            galls = gall_nav,
-                            flash_message = "Title required!")
-        
-        if request.form.get("content"):
-            content = request.form.get("content")
-        else:
-            return render_template("ev_new.html",
+            return render_template("ar_new.html?artp=" + ar_type,
                             pageinfo = page_info, 
                             journal = journal_exist, 
                             events = events_exist,
@@ -422,7 +440,7 @@ def ev_new():
 
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('INSERT INTO articles (type, title, content, archived, link) VALUES (?, ?, ?, ?, ?);', ("event", title, content, 0, link,))
+        cur.execute('INSERT INTO articles (type, title, content, archived, link) VALUES (?, ?, ?, ?, ?);', (ar_type, title, content, False, link,))
         conn.commit()
         ar_id = conn.execute('SELECT id FROM articles ORDER BY id DESC;').fetchone()
         conn.close()
@@ -430,7 +448,7 @@ def ev_new():
         ar_id = ar_id['id']
 
 
-        # img file upload handling implemented as shown here https://blog.miguelgrinberg.com/post/handling-file-uploads-with-flask #
+        # img file upload handling as shown here https://blog.miguelgrinberg.com/post/handling-file-uploads-with-flask #
 
         if request.files['img']:
             
@@ -444,33 +462,93 @@ def ev_new():
                 if file_ext not in app.config['UPLOAD_EXTENSIONS'] or \
                     file_ext != validate_image(img.stream):
                     
-                    return render_template("ev_new.html",
+                    return render_template("ar_mngt.html?artp=" + ar_type,
                             pageinfo = page_info, 
                             journal = journal_exist, 
                             events = events_exist,
                             galls = gall_nav,
-                            flash_message = "New article successfully posted to Events BUT invalid image discarded.")
+                            flash_message = "New article successfully posted to " + ar_type + " BUT invalid image discarded.")
 
-        fname = "article" + str(ar_id) + ".jpg"
-        dbname= "article" + str(ar_id)
+            fname = "article" + str(ar_id) + ".jpg"
+            dbname= "article" + str(ar_id)
 
-        # change path with -- app.config['UPLOAD_PATH'] -- #
+            # change path with -- app.config['UPLOAD_PATH'] -- #
 
-        cwd = os.getcwd()
+            cwd = os.getcwd()
 
-        img.save(os.path.join((cwd+"/static/images/"), fname)) 
+            img.save(os.path.join((cwd+"/static/images/"), fname)) 
 
-        # update article in db with image name #
+            # update article in db with image name #
 
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute('UPDATE articles SET image = ? WHERE id = ?;', (dbname, ar_id,))
-        conn.commit()
-        conn.close()
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('UPDATE articles SET image = ? WHERE id = ?;', (dbname, ar_id,))
+            conn.commit()
+            conn.close()
 
-        return render_template("ev_new.html",
+        return redirect("ar_mngt?artp=" + ar_type)
+    
+@app.route("/archive", methods=["GET", "POST"])
+def archive():
+
+    # get from db the archived articles #
+    conn = get_db_connection()
+    archived_ar = conn.execute('SELECT * FROM articles WHERE archived = 1 ORDER BY id DESC;', ).fetchall()
+    conn.close()
+
+    if request.method == "GET":
+
+        if not archived_ar:
+
+            return render_template("/archive.html",
                             pageinfo = page_info, 
                             journal = journal_exist, 
                             events = events_exist,
                             galls = gall_nav,
-                            flash_message = "New article successfully posted to Events")
+                            flash_message = "Archive is empty.")
+        
+        for row in archived_ar:
+            if len(row['content'])>150:
+                row['content'] = row['content'][:150]+"..."
+            
+        return render_template("/archive.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            entries = archived_ar)
+    
+    if request.method == "POST":
+
+        action = request.args.get('action', '')
+        ar_id = request.form.get("id")
+
+        if action == "repub":
+
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('UPDATE articles SET archived = ? WHERE id = ?;', (False, ar_id,))
+            conn.commit()
+            conn.close()
+
+
+        if action == "del": # delete article entry #
+
+            # get the info from the db to check if article has an image #
+            conn = get_db_connection()
+            image = conn.execute('SELECT image FROM articles WHERE id = ?;', (ar_id,) ).fetchone()
+            conn.close()
+
+            # delete article image if exists #
+            if image['image']:
+                cwd = os.getcwd()
+                os.remove(cwd+"/static/images/" + str(image['image']) + ".jpg") 
+
+            # remove entry from db #
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('DELETE FROM articles WHERE id = ?;', (ar_id,))
+            conn.commit()
+            conn.close()
+
+    return redirect("/archive")
