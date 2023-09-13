@@ -1,0 +1,58 @@
+{% extends "be_layout.html" %}
+
+{% block title %}
+    {{ ar_type | capital }} Management
+{% endblock %}
+
+{% block main %}
+
+<div class="mngt_container">
+
+    <h4 style="text-decoration: none;">{{ ar_type | capital }} Management</h4>
+
+    <br/>
+    <br/>
+
+    <ul>
+        <a href="/ar_new?artp={{ ar_type }}"><li class="limngt">New {{ ar_type | capital }} Entry</li></a>
+    </ul>
+
+</div>
+
+<div class="mngt_container">
+
+    <h1>Manage Entries</h1>
+
+    {% if flash_message %}
+        <br/>
+        <br/>
+        <h1>{{ flash_message }}</h1>
+    {% endif %}
+
+    {% if entries %}
+    <div class="entriesmng">
+        
+        {% for row in entries %}
+        <div class="artmngcontainer">
+            <h1 style="font-size: 1em;">{{ row.title }}</h1>
+            <p>{{ row.date | date }}</p>
+            <p>{{ row.content }}</p>
+            <br/>
+            <form method="post">
+                <input type="hidden" name="id" id="id" value="{{ row.id }}">
+                <button class="mngbutton" type="submit" name="edit" formaction="/ar_mngt?action=1">Edit</button>
+                <button class="mngbutton" type="submit" name="archive" formaction="/ar_mngt?action=2">Archive Entry</button>
+                <p style="font-size: 0.7em; margin-left: 0.3rem;">Entries can be deleted in the archive.</p>
+                
+            </form>
+            <br/>
+        </div>
+        {% endfor %}        
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "be_layout.html" %}
+
+{% block title %}
+    Edit Entry - {{ article.title }}
+{% endblock %}
+
+{% block main %}
+
+<div class="mngt_container">
+
+    <h4 style="text-decoration: none;">Edit Entry - {{ article.title }}</h4>
+
+    {% if flash_message %}
+        <br/>
+        <h5>{{ flash_message }}</h5>
+    {% endif %}
+    
+    <br/>
+    <br/>
+
+    <form action="/ar_mngt?action=3" enctype="multipart/form-data"  method="post" id="article_edit" name="article_edit">
+
+        <input type="text" name="title" id="title" maxlength="50" placeholder="Title..." value="{{ article.title }}" required>
+        <br/>
+        <textarea type="text" name="content" id="content" placeholder="Content text..." required>{{ article.content }}</textarea>
+        <br/>
+        <input type="text" name="link" id="link" placeholder="Content Link... (optional)" {% if article.link %} value="{{ article.link }}" {% endif %}>
+        <br/>
+        {% if article.image %}
+            <img class="article_img" style="float: center; margin-left: 0.1rem;" src="/static/images/{{ article.image }}.jpg">
+        {% endif %}
+        <br/>
+        <label for="img">Upload new image (optional - only jpg or jpeg, max 10MB):</label>
+        <br/>
+        <br/>
+        <input type="file" id="img" name="img" accept=".jpg, .jpeg">
+        <input type="hidden" id="id" name="id" value="{{ article.id }}">
+        <br/>
+        <br/>
+        <input type="submit">
+
+    </form>
+
+</div>
+
+{% endblock %}

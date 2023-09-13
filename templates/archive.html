@@ -1,0 +1,51 @@
+{% extends "be_layout.html" %}
+
+{% block title %}
+    Articles Archive Management
+{% endblock %}
+
+{% block main %}
+
+<div class="mngt_container" style="margin-bottom: 0;">
+
+    <h4 style="text-decoration: none;">Articles Archive Management</h4>
+
+</div>
+
+<div class="mngt_container">
+
+    {% if flash_message %}
+        <br/>
+        <br/>
+        <h1>{{ flash_message }}</h1>
+        <br/>
+        <br/>
+    {% endif %}
+
+    {% if entries %}
+    <div class="entriesmng">
+        
+        {% for row in entries %}
+        <div class="artmngcontainer">
+            <h1 style="font-size: 1em;">{{ row.title }}</h1>
+            <h5>{{ row.type | capital }}</h5>
+            <p>{{ row.date | date }}</p>
+            <p>{{ row.content }}</p>
+            <br/>
+            <form method="post">
+                <input type="hidden" name="id" id="id" value="{{ row.id }}">
+                <button class="mngbutton" type="submit" name="republish" formaction="/archive?action=repub">Republish</button>
+                <button class="mngbutton" style="color: red;" name="delete" type="submit" formaction="/archive?action=del">Delete Permanently</button>
+                <p style="font-size: 0.7em; margin-left: 0.3rem;">Deleted entries cannot be restored.</p>
+            </form>
+            <br/>
+        </div>
+        {% endfor %}        
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

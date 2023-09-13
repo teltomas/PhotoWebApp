@@ -1,0 +1,43 @@
+{% extends "be_layout.html" %}
+
+{% block title %}
+{{ ar_type | capital }} New Entry
+{% endblock %}
+
+{% block main %}
+
+<div class="mngt_container">
+
+    <h4 style="text-decoration: none;">{{ ar_type | capital }} - New Entry</h4>
+
+    {% if flash_message %}
+        <br/>
+        <h5>{{ flash_message }}</h5>
+    {% endif %}
+    
+    <br/>
+    <br/>
+
+    <form action="/ar_new" enctype="multipart/form-data"  method="post" id="ar_new" name="ar_new">
+
+        <input type="text" name="title" id="title" maxlength="50" placeholder="Title..." required>
+        <br/>
+        <textarea type="text" name="content" id="content" placeholder="Content text..." required></textarea>
+        <br/>
+        <input type="text" name="link" id="link" placeholder="Content Link... (optional)">
+        <br/>
+        <br/>
+        <label for="img">Upload image (optional - only jpg or jpeg, max 10MB):</label>
+        <br/>
+        <br/>
+        <input type="file" id="img" name="img" accept=".jpg, .jpeg">
+        <input type="hidden" id="ar_type" name="ar_type" value="{{ ar_type }}">
+        <br/>
+        <br/>
+        <input type="submit">
+
+    </form>
+
+</div>
+
+{% endblock %}
