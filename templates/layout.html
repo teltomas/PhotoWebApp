@@ -10,7 +10,7 @@
         {% block script %}{% endblock %}
         {% block extracss %}{% endblock %}
         
-        <!-- <link href="/static/images/favicon.ico" rel="icon"> -->
+        <link href="/static/images/favicon.ico" rel="icon">
 
         <link href="/static/styles.css" rel="stylesheet">
 
@@ -105,7 +105,15 @@
         
 
         <footer>
-            <p style="padding: 40px;">{% if pageinfo.legal %}<a class="menuf" href="">Legal Disclaimers</a>{% endif %}{% if pageinfo.legal and pageinfo.copyright %} | {% endif %}{% if pageinfo.copyright %}<a class="menuf" href="">Copyright Disclaimers</a>{% endif %}</p>
+            <p style="padding: 40px;">
+                {% if pageinfo.legal %}
+                <a class="menuf" href="">Legal Disclaimers</a>
+                {% endif %}
+                {% if pageinfo.legal and pageinfo.copyright %} | {% endif %}
+                {% if pageinfo.copyright %}
+                <a class="menuf" href="">Copyright Disclaimers</a>
+                {% endif %}
+            </p>
         </footer>
 
     </body>

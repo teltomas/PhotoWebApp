@@ -925,3 +925,90 @@ def base_mngt():
             return redirect("/base_mngt")
 
     return redirect("/base_mngt")
+
+@app.route("/aspect_mngt", methods=["GET", "POST"])
+def aspect_mngt():
+
+    if request.method == "GET":
+
+        return render_template("/aspect_mngt.html",
+                               pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav)
+    
+    if request.method == "POST":
+
+        action = request.args.get('action', '')
+
+        if action == "banner":
+
+            if request.files['heroimg']:
+            
+                img = request.files['heroimg']
+                
+                filename = img.filename 
+
+                if filename != '':
+
+                    file_ext = os.path.splitext(filename)[1]
+                    if file_ext not in app.config['UPLOAD_EXTENSIONS'] or \
+                        file_ext != validate_image(img.stream):
+                        
+                        return render_template("aspect_mngt.html",
+                                pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                flash_message = "Failed to upload image.")
+
+                fname = "2.jpg"
+
+                path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
+
+                img.save(path)
+
+            return render_template("/aspect_mngt.html",
+                                pageinfo = page_info, 
+                                    journal = journal_exist, 
+                                    events = events_exist,
+                                    galls = gall_nav)
+    
+        if action == "ico":
+
+            if request.files['ico']:
+            
+                img = request.files['ico']
+                
+                filename = img.filename 
+
+                if filename != '':
+
+                    file_ext = os.path.splitext(filename)[1]
+                    if file_ext not in app.config['UPLOAD_EXTENSIONS']:
+                        
+                        return render_template("aspect_mngt.html",
+                                pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                flash_message = "Failed to upload image.")
+
+                fname = "favicon.ico"
+
+                path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
+
+                img.save(path)
+
+            return render_template("/aspect_mngt.html",
+                                pageinfo = page_info, 
+                                    journal = journal_exist, 
+                                    events = events_exist,
+                                    galls = gall_nav)
+    
+        return render_template("/aspect_mngt.html",
+                                pageinfo = page_info, 
+                                    journal = journal_exist, 
+                                    events = events_exist,
+                                    galls = gall_nav)
+    

@@ -8,7 +8,7 @@
         <meta name="viewport" content="initial-scale=1, width=device-width">
 
         
-        <!-- <link href="/static/images/favicon.ico" rel="icon"> -->
+        <link href="/static/images/favicon.ico" rel="icon">
 
         <link href="/static/styles.css" rel="stylesheet">
 
@@ -78,7 +78,14 @@
         </div>
   
         <footer>
-            <p style="padding: 40px;"><a class="menuf" href="">Legal Disclaimers</a> | <a class="menuf" href="">Copyright Disclaimers</a></p>
+            <p style="padding: 40px;">{% if pageinfo.legal %}
+                <a class="menuf" href="">Legal Disclaimers</a>
+                {% endif %}
+                {% if pageinfo.legal and pageinfo.copyright %} | {% endif %}
+                {% if pageinfo.copyright %}
+                <a class="menuf" href="">Copyright Disclaimers</a>
+                {% endif %}
+            </p>
         </footer>
 
     </body>

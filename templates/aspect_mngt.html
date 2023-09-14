@@ -1,0 +1,76 @@
+{% extends "be_layout.html" %}
+
+{% block title %}
+    Page Aspect Management
+{% endblock %}
+
+{% block main %}
+
+
+<div class="mngt_container">
+
+    <h4 style="text-decoration: none;">Page Aspect Management</h4>
+
+    {% if flash_message %}
+        <br/>
+        <br/>
+        <h1>{{ flash_message }}</h1>
+    {% endif %}
+    <br/>
+    <br/>
+
+    <!-- TO DO : multi upload for showcase, or image select from library -->
+
+    <div class="artmngcontainer">
+
+        <div class="clearfix">
+            
+            <img style="max-width: 100%;" class="article_img" src="static/images/2.jpg">
+            
+        <h1>Change banner / hero image:</h1>
+        <p style="font-size: 0.7em;">For better design and quality is advised an image with 2000px(width) by 450px(height)</p>
+            
+        <form action="aspect_mngt?action=banner" enctype="multipart/form-data" method="post" id="banner" name="banner">
+            <br/>
+            <label for="abimg">(only jpg or jpeg - max 10MB):</label>
+            <br/>
+            <br/>
+            <input type="file" id="heroimg" name="heroimg" accept=".jpg, .jpeg">
+            <br/>
+            <br/>
+            <input type="submit">
+
+        </form>
+
+        </div>
+
+    </div>
+
+    <div class="artmngcontainer">
+
+        <div class="clearfix">
+            
+            <img style="max-width: 100%;" class="article_img" src="static/images/favicon.ico">
+            
+        <h1>Change Tab bar ICON:</h1>
+            
+        <form action="aspect_mngt?action=ico" enctype="multipart/form-data" method="post" id="icon" name="icon">
+            <br/>
+            <label for="abimg">(only .ico files):</label>
+            <br/>
+            <br/>
+            <input type="file" id="ico" name="ico" accept=".ico">
+            <br/>
+            <br/>
+            <input type="submit">
+
+        </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
