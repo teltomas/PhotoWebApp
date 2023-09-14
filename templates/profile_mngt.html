@@ -1,0 +1,185 @@
+{% extends "be_layout.html" %}
+
+{% block title %}
+    Profile Info Management
+{% endblock %}
+
+{% block main %}
+
+
+<div class="mngt_container">
+
+    <h4 style="text-decoration: none;">Profile Info Management</h4>
+
+    {% if flash_message %}
+        <br/>
+        <br/>
+        <h1>{{ flash_message }}</h1>
+    {% endif %}
+    <br/>
+    <br/>
+
+
+
+    <div class="artmngcontainer">
+
+        <h1>Change the page name:</h1>
+        <form action="profile_mngt?action=name" method="post" id="page_name" name="page_name">
+            <input type="text" name="pg_name" id="pg_name" maxlength="25" placeholder="Page Name..." value="{{ pageinfo.page_name }}" required>
+            <input type="submit">
+        </form>
+
+    </div>
+
+    <div class="artmngcontainer">
+
+        <h1>Change the main page description:</h1>
+        <form action="profile_mngt?action=description" method="post" id="description" name="description">
+            <textarea type="text" style="max-height: 5rem;" name="pg_descr" id="pg_descr" placeholder="Main Page description text..." required>{{ pageinfo.small_descr }}</textarea>
+            <input type="submit">
+        </form>
+    
+    </div>
+
+    <div class="artmngcontainer">
+        
+        <h1>Change the About page text:</h1>
+        <form action="profile_mngt?action=aboutcontent" method="post" id="abouttext" name="abouttext">
+            <textarea type="text" name="abttxt" id="abttxt" placeholder="About Page text..." required>{{ pageinfo.about }}</textarea>
+            <input type="submit">
+        </form>
+    
+    </div>
+
+    <div class="artmngcontainer">
+
+        <div class="clearfix">
+
+            <img class="article_img" src="static/images/0.jpg">
+
+        <h1>Change "About Page" image:</h1>
+            
+        <form action="profile_mngt?action=aboutphoto" enctype="multipart/form-data" method="post" id="about_photo" name="about_photo">
+            <br/>
+            <br/>
+            <label for="abimg">(only jpg or jpeg - max 10MB):</label>
+            <br/>
+            <br/>
+            <input type="file" id="abimg" name="abimg" accept=".jpg, .jpeg">
+            <br/>
+            <br/>
+            <input type="submit">
+        </form>
+
+        </div>
+
+    </div>
+
+    <div class="artmngcontainer">
+
+        <div class="clearfix">
+
+            <img class="article_img" style="border-radius: 50%;" src="static/images/1.jpg">
+
+        <h1>Change profile image / logo:</h1>
+
+        <form action="profile_mngt?action=profphoto" enctype="multipart/form-data" method="post" id="profile_photo" name="profile_photo">
+            <br/>
+            <br/>
+            <p>It is advised a photo or logo in square format.</p>
+            <label for="profimg">(only jpg, jpeg or .png - max 10MB):</label>
+            <br/>
+            <br/>
+            <input type="file" id="profimg" name="profimg" accept=".jpg, .jpeg, .png">
+            <br/>
+            <br/>
+            <input type="submit">
+        </form>
+
+        </div>
+
+    </div>
+
+    <div class="artmngcontainer">
+
+        <h1>Instagram Link:</h1>
+        <form action="profile_mngt?action=insta" method="post" id="insta" name="insta">
+            <input type="text" name="instalink" id="instalink" maxlength="100" placeholder="Instagram link..." {% if pageinfo.inst_link %} value="{{ pageinfo.inst_link }}" {% endif %}>
+            <input type="submit">
+        </form>
+
+    </div>
+
+    <div class="artmngcontainer">
+
+        <h1>Facebook Link:</h1>
+        <form action="profile_mngt?action=face" method="post" id="face" name="face">
+            <input type="text" name="facelink" id="facelink" maxlength="100" placeholder="Facebook link..." {% if pageinfo.face_link %} value="{{ pageinfo.face_link }}" {% endif %}>
+            <input type="submit">
+        </form>
+
+    </div>
+
+    <div class="artmngcontainer">
+
+        <h1>Youtube Link:</h1>
+        <form action="profile_mngt?action=ytb" method="post" id="youtube" name="youtube">
+            <input type="text" name="ytblink" id="ytblink" maxlength="100" placeholder="Youtube link..." {% if pageinfo.yt_link %} value="{{ pageinfo.yt_link }}" {% endif %}>
+            <input type="submit">
+        </form>
+
+    </div>
+
+    <div class="artmngcontainer">
+
+        <h1>Twitter / X Link:</h1>
+        <form action="profile_mngt?action=tweet" method="post" id="twitter" name="twitter">
+            <input type="text" name="tweetlink" id="tweetlink" maxlength="100" placeholder="Twitter / X link..." {% if pageinfo.tweet_link %} value="{{ pageinfo.tweet_link }}" {% endif %}>
+            <input type="submit">
+        </form>
+
+    </div>
+
+    <div class="artmngcontainer">
+
+        <h1>500px Link:</h1>
+        <form action="profile_mngt?action=px" method="post" id="500" name="500">
+            <input type="text" name="500pxlink" id="500pxlink" maxlength="100" placeholder="500px link..." {% if pageinfo.px_link %} value="{{ pageinfo.px_link }}" {% endif %}>
+            <input type="submit">
+        </form>
+
+    </div>
+
+    <div class="artmngcontainer">
+
+        <h1>Behance Link:</h1>
+        <form action="profile_mngt?action=bhnc" method="post" id="behance" name="behance">
+            <input type="text" name="bhnclink" id="bhnclink" maxlength="100" placeholder="Behance link..." {% if pageinfo.bhnc_link %} value="{{ pageinfo.bhnc_link }}" {% endif %}>
+            <input type="submit">
+        </form>
+
+    </div>
+
+    <div class="artmngcontainer">
+
+        <h1>Flickr Link:</h1>
+        <form action="profile_mngt?action=flickr" method="post" id="flickr" name="flickr">
+            <input type="text" name="flickrlink" id="flickrlink" maxlength="100" placeholder="Flickr link..." {% if pageinfo.flickr_link %} value="{{ pageinfo.flickr_link }}" {% endif %}>
+            <input type="submit">
+        </form>
+
+    </div>
+
+    <div class="artmngcontainer">
+
+        <h1>Tumblr Link:</h1>
+        <form action="profile_mngt?action=tumblr" method="post" id="tumblr" name="tumblr">
+            <input type="text" name="tumblrlink" id="tumblrlink" maxlength="100" placeholder="Tumblr link..." {% if pageinfo.tumblr_link %} value="{{ pageinfo.tumblr_link }}" {% endif %}>
+            <input type="submit">
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

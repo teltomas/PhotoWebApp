@@ -6,23 +6,20 @@
 
 {% block main %}
 
-        
+    {% if pageinfo.small_descr %}    
     <div class="maindescr"><br/>
         <p>
             {{ pageinfo.small_descr }}
         </p>
     </div>
+    {% endif %}
     
-    <div class="showcase">       
-        
+    <div class="showcase">      
     
         {% for row in imgs %}
-
         <img class="showcaseimg" src="static/images/{{ row.img_id }}.jpg">        
-
         {% endfor %}
 
-    </div>
-    
+    </div>    
 
 {% endblock %}

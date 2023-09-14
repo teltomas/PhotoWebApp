@@ -7,8 +7,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from flask_mail import Mail, Message
 
 
-from front import date, capital
-from back import validate_image
+from front import date, capital, dblink
+from back import validate_image, get_db_connection
 
 # configure app
 app = Flask(__name__)
@@ -16,33 +16,13 @@ app = Flask(__name__)
 # Custom filter
 app.jinja_env.filters["date"] = date
 app.jinja_env.filters["capital"] = capital
+app.jinja_env.filters["http"] = dblink
 
 # Config the app file upload handling: max size 10MB; file type restricted to *.jpg, *.jpeg and *.ico; file upload folder path 
 
 app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 * 10
-app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.jpeg', '.ico']
+app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.jpeg', '.png', '.ico']
 app.config['UPLOAD_PATH'] = '/static/images/'
-
-
-# configure database management
-
-# arrange the data from the db in dictionaries #
-# as documented in https://docs.python.org/3/library/sqlite3.html#sqlite3-howto-row-factory #
-# and https://stackoverflow.com/questions/3300464/how-can-i-get-dict-from-sqlite-query #
-
-def dict_factory(cursor, row):
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
-
-# database in sqlite config as documented in #
-# https://www.digitalocean.com/community/tutorials/how-to-use-an-sqlite-database-in-a-flask-application #
-
-def get_db_connection():
-    conn = sqlite3.connect('photowebapp.db')
-    conn.row_factory = dict_factory
-    return conn
 
 
 ####### FOR FRONTEND #######
@@ -235,18 +215,21 @@ app.config['SESSION_FILE_THRESHOLD'] = 10
 Session(app)
 
 
-
 @app.route("/management")
 def mngmt():
 
+    # render main management page #
     return render_template("mngmt_main.html",
                            pageinfo = page_info, 
                            journal = journal_exist, 
                            events = events_exist,
                            galls = gall_nav)
 
+
 @app.route("/ar_mngt", methods=["GET", "POST"])
 def ar_mngmt():
+
+    # management of the existing articles - both events and journal entries #
 
     if request.args.get('artp', ''):
         ar_type = request.args.get('artp', '')
@@ -296,6 +279,7 @@ def ar_mngmt():
                             journal = journal_exist, 
                             events = events_exist,
                             galls = gall_nav,
+                            ar_type = ar_type,
                             article = article)
         
         if action == 2: # archive article entry #
@@ -318,6 +302,7 @@ def ar_mngmt():
                             events = events_exist,
                             galls = gall_nav,
                             article = article,
+                            ar_type = ar_type,
                             flash_message = "Title required!")
 
             # get and confirm main contents #
@@ -330,6 +315,7 @@ def ar_mngmt():
                                 events = events_exist,
                                 galls = gall_nav,
                                 article = article,
+                                ar_type = ar_type,
                                 flash_message = "Content text required!")
 
             # get and confirm link contents - set null if empty #
@@ -392,6 +378,8 @@ def ar_mngmt():
 @app.route("/ar_new", methods=["GET", "POST"])
 def ar_new():
 
+    # creation of new articles #
+
     if not request.args.get('artp', '') and not request.form.get("ar_type"):
         return redirect("management")
 
@@ -424,11 +412,12 @@ def ar_new():
         if request.form.get("content"):
             content = request.form.get("content")
         else:
-            return render_template("ar_new.html?artp=" + ar_type,
+            return render_template("ar_new.html",
                             pageinfo = page_info, 
                             journal = journal_exist, 
                             events = events_exist,
                             galls = gall_nav,
+                            ar_type = ar_type,
                             flash_message = "Content text required!")
         
         if request.form.get("link"):
@@ -462,11 +451,12 @@ def ar_new():
                 if file_ext not in app.config['UPLOAD_EXTENSIONS'] or \
                     file_ext != validate_image(img.stream):
                     
-                    return render_template("ar_mngt.html?artp=" + ar_type,
+                    return render_template("ar_mngt.html",
                             pageinfo = page_info, 
                             journal = journal_exist, 
                             events = events_exist,
                             galls = gall_nav,
+                            ar_type = ar_type,
                             flash_message = "New article successfully posted to " + ar_type + " BUT invalid image discarded.")
 
             fname = "article" + str(ar_id) + ".jpg"
@@ -552,3 +542,170 @@ def archive():
             conn.close()
 
     return redirect("/archive")
+
+@app.route("/pg_mngt", methods=["GET"])
+def pg_mngt():
+
+    # render page of aspect and base info management selection #
+    return render_template("/pg_mngt.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            )
+
+@app.route("/profile_mngt", methods=["GET", "POST"])
+def profile_mngt():
+
+    # update info variables to fill forms #
+
+    conn = get_db_connection()
+    page_info = conn.execute('SELECT * FROM page_info WHERE id = 1;').fetchone() # for the general page info #
+    conn.close()
+
+    if request.method == "GET":
+
+        # render page of profile info management #
+        return render_template("/profile_mngt.html",
+                                pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                )
+    
+    if request.method == "POST":
+
+        # get which action was requested and proceed with change #
+        action = request.args.get('action', '')
+
+        if action == "name":
+
+            if not request.form.get("pg_name"):
+
+                return render_template("/profile_mngt.html",
+                                        pageinfo = page_info, 
+                                        journal = journal_exist, 
+                                        events = events_exist,
+                                        galls = gall_nav,
+                                        flash_message = "Page name input required"
+                                        )
+            
+            else:
+                pg_name = request.form.get("pg_name")           
+
+                conn = get_db_connection()
+                cur = conn.cursor()
+                cur.execute('UPDATE page_info SET page_name = ? WHERE id = 1;', (pg_name,))
+                conn.commit()
+                conn.close() 
+
+            return redirect("/profile_mngt")
+
+        if action == "description":
+
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('UPDATE page_info SET small_descr = ? WHERE id = 1;', (request.form.get("pg_descr"),))
+            conn.commit()
+            conn.close()
+
+            return redirect("/profile_mngt")
+
+        if action == "aboutcontent":
+
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('UPDATE page_info SET about = ? WHERE id = 1;', (request.form.get("abttxt"),))
+            conn.commit()
+            conn.close()
+
+            return redirect("/profile_mngt")
+
+        # if action == "aboutphoto": --> TO DO
+
+        # if action == "profphoto": --> TO DO
+
+        if action == "insta":
+
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('UPDATE page_info SET inst_link = ? WHERE id = 1;', (request.form.get("instalink"),))
+            conn.commit()
+            conn.close()
+
+            return redirect("/profile_mngt")
+        
+        if action == "face":
+                
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('UPDATE page_info SET face_link = ? WHERE id = 1;', (request.form.get("facelink"),))
+            conn.commit()
+            conn.close()
+
+            return redirect("/profile_mngt")
+
+        if action == "ytb":
+
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('UPDATE page_info SET yt_link = ? WHERE id = 1;', (request.form.get("ytblink"),))
+            conn.commit()
+            conn.close()
+
+            return redirect("/profile_mngt")
+
+        if action == "tweet":
+
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('UPDATE page_info SET tweet_link = ? WHERE id = 1;', (request.form.get("tweetlink"),))
+            conn.commit()
+            conn.close()
+
+            return redirect("/profile_mngt")
+
+        if action == "px":
+
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('UPDATE page_info SET px_link = ? WHERE id = 1;', (request.form.get("500pxlink"),))
+            conn.commit()
+            conn.close()
+
+            return redirect("/profile_mngt")
+
+        if action == "bhnc":
+   
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('UPDATE page_info SET bhnc_link = ? WHERE id = 1;', (request.form.get("bhnclink"),))
+            conn.commit()
+            conn.close()
+
+            return redirect("/profile_mngt")
+
+        if action == "flickr":
+
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('UPDATE page_info SET flickr_link = ? WHERE id = 1;', (request.form.get("flickrlink"),))
+            conn.commit()
+            conn.close()
+
+            return redirect("/profile_mngt")
+
+        if action == "tumblr":
+
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('UPDATE page_info SET tumblr_link = ? WHERE id = 1;', (request.form.get("tumblrlink"),))
+            conn.commit()
+            conn.close()
+
+            return redirect("/profile_mngt")
+        
+        return redirect("/profile_mngt")
+
+
+            

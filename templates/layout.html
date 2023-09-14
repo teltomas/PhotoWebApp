@@ -47,8 +47,12 @@
                 {% if events %}
                 <li class="menu"><a href="/article?artp=event">Events</a></li>
                 {% endif %}
-                <li class="menu"><a href="/about">About</a></li>
+                {% if pageinfo.about %}
+                <li class="menu"><a href="/about">About</a></li> 
+                {% endif %}
+                {% if pageinfo.page_email %}
                 <li class="menu"><a href="/contact">Contact</a></li>
+                {% endif %}
 
             </ul>
         </nav>
@@ -60,27 +64,34 @@
         <div class="prflinfo">
             <img class="profileimg" src="static/images/1.jpg">
 
-                <h2>{{ pageinfo.page_name}}</h2>
+            <h2>{{ pageinfo.page_name}}</h2>
 
-                <p>
-                    
-                        <a href="{{ pageinfo.face_link }}" target="new"><img class="icons" alt="Facebook" src="static/images/face.png"></a>
-                    
-                        <a href="{{ pageinfo.insta_link }}" target="new"><img class="icons" alt="Instagram" src="static/images/insta.png"></a>
-                    
-                        <a href="{{ pageinfo.tweet_link }}" target="new"><img class="icons" alt="Twitter X" src="static/images/tweet.png"></a>
-                    
-                        <a href="{{ pageinfo.yt_link }}" target="new"><img class="icons" alt="YouTube" src="static/images/ytb.png"></a>
-                    
-                        <a href="{{ pageinfo.px_link }}" target="new"><img class="icons" alt="500px" src="static/images/5px.png"></a>
-                    
-                        <a href="{{ pageinfo.bhnc_link }}" target="new"><img class="icons" alt="Behance" src="static/images/bh.png"></a>
-                    
-                        <a href="{{ pageinfo.flickr_link }}" target="new"><img class="icons" alt="Flickr" src="static/images/fli.png"></a>
-                    
-                        <a href="{{ pageinfo.tumblr_link }}" target="new"><img class="icons" alt="tumblr" style="border-radius: 3px;" src="static/images/tblr.png"></a>
-                    
-                </p>
+            <p>                
+                {% if pageinfo.face_link %}
+                    <a href="{{ pageinfo.face_link | http }}" target="new"><img class="icons" alt="Facebook" src="static/images/face.png"></a>
+                {% endif %} 
+                {% if pageinfo.inst_link %}
+                    <a href="{{ pageinfo.inst_link | http }}" target="new"><img class="icons" alt="Instagram" src="static/images/insta.png"></a>
+                {% endif %} 
+                {% if pageinfo.tweet_link %}
+                    <a href="{{ pageinfo.tweet_link | http }}" target="new"><img class="icons" alt="Twitter X" src="static/images/tweet.png"></a>
+                {% endif %} 
+                {% if pageinfo.yt_link %}
+                    <a href="{{ pageinfo.yt_link | http }}" target="new"><img class="icons" alt="YouTube" src="static/images/ytb.png"></a>
+                {% endif %} 
+                {% if pageinfo.px_link %}
+                    <a href="{{ pageinfo.px_link | http }}" target="new"><img class="icons" alt="500px" src="static/images/5px.png"></a>
+                {% endif %} 
+                {% if pageinfo.bhnc_link %}
+                    <a href="{{ pageinfo.bhnc_link | http }}" target="new"><img class="icons" alt="Behance" src="static/images/bh.png"></a>
+                {% endif %} 
+                {% if pageinfo.flickr_link %}
+                    <a href="{{ pageinfo.flickr_link | http }}" target="new"><img class="icons" alt="Flickr" src="static/images/fli.png"></a>
+                {% endif %} 
+                {% if pageinfo.tumblr_link %}
+                    <a href="{{ pageinfo.tumblr_link | http }}" target="new"><img class="icons" alt="Tumblr" style="border-radius: 3px;" src="static/images/tblr.png"></a>
+                {% endif %}                     
+            </p>
 
 
         </div>

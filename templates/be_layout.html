@@ -36,8 +36,8 @@
                             {% endfor %}
                         </div>
                     {% endif %}
+                
                 </div>
-
 
                 {% if journal %}
                 <li class="menu"><a href="/article?artp=journal">Journal</a></li>
@@ -45,7 +45,9 @@
                 {% if events %}
                 <li class="menu"><a href="/article?artp=event">Events</a></li>
                 {% endif %}
-                <li class="menu"><a target="_blank" href="/about">About</a></li>
+                {% if pageinfo.about %}
+                <li class="menu"><a href="/about">About</a></li>
+                {% endif %}
                 <li class="menu"><a target="_blank" href="/contact">Contact</a></li>
 
             </ul>
