@@ -1,5 +1,11 @@
+import os
 import imghdr
 import sqlite3
+import PIL
+
+from PIL import Image
+
+# image resizing as the tutorial from https://www.holisticseo.digital/python-seo/resize-image/ #
 
 
 # configure database management
@@ -32,4 +38,14 @@ def validate_image(stream):
     if not format:
         return None
     return '.' + (format if format != 'jpeg' else 'jpg')
+
+def image_resize(path, fixed_height):
+
+    image = Image.open(path)
+    height_percent = (fixed_height / float(image.size[1]))
+    width_size = int((float(image.size[0]) * float(height_percent)))
+    image = image.resize((width_size, fixed_height), PIL.Image.NEAREST)
+    image.save(path)
+    
+    return
 

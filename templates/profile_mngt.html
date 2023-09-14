@@ -45,7 +45,7 @@
         
         <h1>Change the About page text:</h1>
         <form action="profile_mngt?action=aboutcontent" method="post" id="abouttext" name="abouttext">
-            <textarea type="text" name="abttxt" id="abttxt" placeholder="About Page text..." required>{{ pageinfo.about }}</textarea>
+            <textarea type="text" name="abttxt" id="abttxt" placeholder="About Page text..." required>{{ pageinfo.about | safe }}</textarea>
             <input type="submit">
         </form>
     
@@ -54,13 +54,13 @@
     <div class="artmngcontainer">
 
         <div class="clearfix">
-
+            {% if pageinfo.about_img %}
             <img class="article_img" src="static/images/0.jpg">
+            {% endif %}
 
         <h1>Change "About Page" image:</h1>
             
         <form action="profile_mngt?action=aboutphoto" enctype="multipart/form-data" method="post" id="about_photo" name="about_photo">
-            <br/>
             <br/>
             <label for="abimg">(only jpg or jpeg - max 10MB):</label>
             <br/>
@@ -69,6 +69,11 @@
             <br/>
             <br/>
             <input type="submit">
+            <br>
+            <br>
+            <button class="mngbutton" style="margin-left: 0; color: red;" name="delete" type="submit" formaction="/profile_mngt?action=delabtph">Remove Image</button>
+            <p style="font-size: 0.7em;">Deleted images cannot be restored.</p>
+
         </form>
 
         </div>
@@ -79,12 +84,11 @@
 
         <div class="clearfix">
 
-            <img class="article_img" style="border-radius: 50%;" src="static/images/1.jpg">
+            <img class="article_img" style="border-radius: 50%;" src="static/images/{{ pageinfo.prof_pic }}">
 
         <h1>Change profile image / logo:</h1>
 
         <form action="profile_mngt?action=profphoto" enctype="multipart/form-data" method="post" id="profile_photo" name="profile_photo">
-            <br/>
             <br/>
             <p>It is advised a photo or logo in square format.</p>
             <label for="profimg">(only jpg, jpeg or .png - max 10MB):</label>
@@ -98,7 +102,7 @@
 
         </div>
 
-    </div>
+    </div> 
 
     <div class="artmngcontainer">
 

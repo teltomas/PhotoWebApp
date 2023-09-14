@@ -62,11 +62,11 @@
         </header>
 
         <div class="prflinfo">
-            <img class="profileimg" src="static/images/1.jpg">
+            <img class="profileimg" src="static/images/{{ pageinfo.prof_pic }}">
 
             <h2>{{ pageinfo.page_name}}</h2>
 
-            <p>                
+            <p style="white-space: normal;">                
                 {% if pageinfo.face_link %}
                     <a href="{{ pageinfo.face_link | http }}" target="new"><img class="icons" alt="Facebook" src="static/images/face.png"></a>
                 {% endif %} 
@@ -105,7 +105,7 @@
         
 
         <footer>
-            <p style="padding: 40px;"><a class="menuf" href="">Legal Disclaimers</a> | <a class="menuf" href="">Copyright Disclaimers</a></p>
+            <p style="padding: 40px;">{% if pageinfo.legal %}<a class="menuf" href="">Legal Disclaimers</a>{% endif %}{% if pageinfo.legal and pageinfo.copyright %} | {% endif %}{% if pageinfo.copyright %}<a class="menuf" href="">Copyright Disclaimers</a>{% endif %}</p>
         </footer>
 
     </body>
