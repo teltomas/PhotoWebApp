@@ -1,0 +1,34 @@
+{% extends "be_layout.html" %}
+
+{% block title %}
+Edit Gallery Info - {{ gallery.title }}
+{% endblock %}
+
+{% block main %}
+
+<div class="mngt_container">
+
+    <h4 style="text-decoration: none;">Edit Gallery Info - {{ gallery.title }}</h4>
+
+    {% if flash_message %}
+        <br/>
+        <h5>{{ flash_message }}</h5>
+    {% endif %}
+    
+    <br/>
+    <br/>
+
+    <form action="/gall_edit?id={{ gallery.id }}" method="post" id="gall_edit" name="ar_edit"gall>
+
+        <input type="text" name="title" id="title" maxlength="50" placeholder="Title..." value="{{ gallery.title }}" required>
+        <br/>
+        <textarea type="text" name="galldescr" id="galldescr" placeholder="Gallery Description...">{% if gallery.description %}{{ gallery.description }}{% endif %}</textarea>
+        <br/>
+        <br/>
+        <input type="submit">
+
+    </form>
+
+</div>
+
+{% endblock %}

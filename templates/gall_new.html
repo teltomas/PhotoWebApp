@@ -1,0 +1,34 @@
+{% extends "be_layout.html" %}
+
+{% block title %}
+Create New Gallery
+{% endblock %}
+
+{% block main %}
+
+<div class="mngt_container">
+
+    <h4 style="text-decoration: none;">Create New Gallery</h4>
+
+    {% if flash_message %}
+        <br/>
+        <h5>{{ flash_message }}</h5>
+    {% endif %}
+    
+    <br/>
+    <br/>
+
+    <form action="/gall_new" method="post" id="gall_new" name="ar_new"gall>
+
+        <input type="text" name="title" id="title" maxlength="50" placeholder="Title..." required>
+        <br/>
+        <textarea type="text" name="galldescr" id="galldescr" placeholder="Gallery Description..."></textarea>
+        <br/>
+        <br/>
+        <input type="submit">
+
+    </form>
+
+</div>
+
+{% endblock %}

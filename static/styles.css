@@ -5,6 +5,7 @@
      margin: 0;
      padding: 0;
      font-size: 18px;
+     font-family: inter;
 }
 
 a:link, a:hover, a:active, a:visited {
@@ -14,7 +15,6 @@ a:link, a:hover, a:active, a:visited {
 
 body {
     background-color: #f0f0f0;
-    font-family: inter;
     text-align: center;
     color:#3b3b3b;
 }
@@ -90,6 +90,8 @@ li {
   
 .menu:hover {
     color: #3b3b3b;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
   }
 
 .menuf {
@@ -202,7 +204,8 @@ table {
 footer  {
     position: relative;
     bottom: 0;
-    margin-top: 3 rem;;
+    margin-bottom: 0;
+    max-height: auto;
     text-align: center;
     background-color: #3b3b3b;
     color: #f0f0f0;
@@ -364,7 +367,7 @@ background-color: #3b3b3b;
 }
 
 .mngt_container {
-    margin-top: 1rem;
+    margin-top: 2rem;
     margin-bottom: 1rem;
     padding: 0.5rem;
 }
@@ -414,6 +417,35 @@ background-color: #3b3b3b;
     padding: 0.3rem;
     margin: 0.3rem;
 }
+
+.delbutton {
+    display: inline;
+}
+
+.warning {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 1s;
+}
+.delbutton:hover .warning {visibility: visible; opacity: 1;}
+
+.gall_edit_grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.gall_edit_img {
+    max-height: 7rem;
+    margin:0.2rem;
+}
+
+.edit_img {
+    max-height: 8rem;
+    margin:0.2rem;
+}
+
 
 @media only screen and (max-width: 850px) {
     [class="photolink"] {

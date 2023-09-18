@@ -1012,3 +1012,130 @@ def aspect_mngt():
                                     events = events_exist,
                                     galls = gall_nav)
     
+@app.route("/gall_mngt", methods=["GET", "POST"])
+def gall_mngt():
+
+    conn = get_db_connection()
+    galleries = conn.execute('SELECT * FROM galleries ORDER BY id DESC;').fetchall()
+    img_gall = conn.execute('SELECT * FROM gall_img_index;').fetchall()
+    images = conn.execute('SELECT id, title FROM images WHERE id > 2 ORDER BY id DESC;').fetchall()
+    conn.close()
+
+    flash_message = None
+
+    if not galleries:
+        flash_message = "There are no galleries to display."
+
+    for row in galleries:
+        if len(row['description']) > 100:
+            row['description'] = row['description'][:100] + "..."
+
+    if request.method == "GET":
+
+        return render_template("/gall_mngt.html",
+                               pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                galleries = galleries,
+                                img_gall = img_gall,
+                                images = images,
+                                flash_message = flash_message)
+    
+    return redirect("/gall_mngt")  
+
+@app.route("/gall_new", methods=["GET", "POST"])
+def gall_new():
+
+    if request.method == "GET":
+
+        return render_template("/gall_new.html",
+                               pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                )
+    
+    if request.method == "POST":
+
+        if not request.form.get("title"):
+            return render_template("/gall_new.html",
+                               pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                flash_message = "Title is required."
+                                )
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('INSERT INTO galleries (title, description) VALUES (?, ?);', (request.form.get("title"), request.form.get("galldescr"),))
+        conn.commit()
+        conn.close()
+
+
+        return redirect("/gall_mngt")
+        
+    
+    return redirect("/gall_mngt")  
+
+@app.route("/gall_edit", methods=["GET", "POST"])
+def gall_edit():
+
+    gall_id = request.args.get('id', '')
+
+    if request.method == "GET":
+
+        conn = get_db_connection()
+        gallery = conn.execute('SELECT * FROM galleries WHERE id = ?;', (gall_id,)).fetchone()
+        conn.close()
+
+        return render_template("/gall_edit.html",
+                               pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                gallery = gallery,
+                                )
+    
+    if request.method == "POST":
+
+        if not request.form.get("title"):
+            return render_template("/gall_new.html",
+                               pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                flash_message = "Title is required."
+                                )
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('UPDATE galleries SET title = ?, description = ? WHERE id = ?;', (request.form.get("title"), request.form.get("galldescr"), gall_id,))
+        conn.commit()
+        conn.close()
+
+        return redirect("/gall_mngt")
+        
+    return redirect("/gall_mngt")  
+
+
+@app.route("/gall_del", methods=["POST"])
+def gall_del():
+
+    ## delete gallery entry ##
+
+    gall_id = request.args.get('id', '')    # get the id of the gallery to remove
+
+    if request.method == "POST":
+       
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('DELETE FROM gall_img_index WHERE gall_id = ?;', (gall_id,)) # remove the gallery data from the gallery and photos index table
+        cur.execute('DELETE FROM galleries WHERE id = ?;', (gall_id,)) # remove the gallery data from the gallery table
+        conn.commit()
+        conn.close()
+
+        return redirect("/gall_mngt")   # return to the galls and photos management page      
+    
+    return redirect("/gall_mngt")  
