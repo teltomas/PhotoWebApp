@@ -1,0 +1,38 @@
+{% extends "be_layout.html" %}
+
+{% block title %}
+    Upload Photos
+{% endblock %}
+
+<!-- photo uploader dropzone.js from https://www.dropzone.dev/ as implemented through the tutorial -->
+<!-- found in https://blog.miguelgrinberg.com/post/handling-file-uploads-with-flask -->
+
+{% block script %}
+
+{% endblock %}
+
+{% block extracss %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.1/min/dropzone.min.css">
+{% endblock %}
+
+{% block main %}
+
+
+<div class="mngt_container">
+    
+    <h4 style="text-decoration: none;">Upload Photos</h4>
+    <br/>
+    <form action="/photos_upload" method="post" enctype="multipart/form-data" class="dropzone">
+    </form>
+
+    
+</div>
+
+<ul>
+    <a href="/gall_mngt"><li class="limngt">Return</li></a>
+</ul>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.1/min/dropzone.min.js"></script>
+
+
+{% endblock %}

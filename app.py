@@ -8,7 +8,7 @@ from flask_mail import Mail, Message
 
 
 from front import date, capital, dblink
-from back import validate_image, get_db_connection, image_resize
+from back import validate_image, get_db_connection, image_resize, createthumb
 
 # configure app
 app = Flask(__name__) 
@@ -1088,9 +1088,17 @@ def gall_edit():
 
         conn = get_db_connection()
         gallery = conn.execute('SELECT * FROM galleries WHERE id = ? ORDER BY id DESC;', (gall_id,)).fetchone()
-        images = conn.execute('SELECT gall_id, img_id FROM gall_img_index JOIN images ON gall_img_index.img_id = images.id WHERE gall_id = ? ORDER BY img_id DESC;', (gall_id,)).fetchall()
+        images = conn.execute('SELECT gall_id, img_id, title FROM gall_img_index JOIN images ON gall_img_index.img_id = images.id WHERE gall_id = ? ORDER BY img_id DESC;', (gall_id,)).fetchall()
         freeimgs = conn.execute('SELECT id FROM images WHERE id > 2 EXCEPT SELECT img_id FROM gall_img_index WHERE gall_id = ? ORDER BY id DESC;', (gall_id,)).fetchall()
         conn.close()
+
+        for img in freeimgs:
+
+            conn = get_db_connection()
+            title = conn.execute('SELECT title FROM images WHERE id = ?;', (img['id'],)).fetchone()
+            conn.close()
+
+            img['title'] = title['title']
         
         return render_template("/gall_edit.html",
                                 pageinfo = page_info, 
@@ -1175,14 +1183,15 @@ def gall_del():
 @app.route("/img_edit", methods=["GET", "POST"])
 def img_edit():
 
-    img_id = request.args.get('imgid', '')
+    if request.args.get('imgid', ''):
+        img_id = request.args.get('imgid', '')
 
-    if request.method == "GET":
+    conn = get_db_connection()
+    img_info = conn.execute('SELECT * FROM images WHERE id =?;', (img_id,)).fetchone()
+    img_galls = conn.execute('SELECT gall_id, title FROM gall_img_index JOIN galleries ON gall_img_index.gall_id = galleries.id WHERE img_id = ?;', (img_id,)).fetchall()
+    conn.close()
 
-        conn = get_db_connection()
-        img_info = conn.execute('SELECT * FROM images WHERE id =?;', (img_id,)).fetchone()
-        img_galls = conn.execute('SELECT gall_id, title FROM gall_img_index JOIN galleries ON gall_img_index.gall_id = galleries.id WHERE img_id = ?;', (img_id,)).fetchall()
-        conn.close()
+    if request.method == "GET":        
 
         return render_template("/img_edit.html",
                                     pageinfo = page_info, 
@@ -1201,7 +1210,16 @@ def img_edit():
         conn.commit()
         conn.close()
 
-        return redirect("/img_edit?imgid="+img_id)
+        return render_template("/img_edit.html",
+                                    pageinfo = page_info, 
+                                    journal = journal_exist, 
+                                    events = events_exist,
+                                    galls = gall_nav,
+                                    img_info = img_info,
+                                    img_galls = img_galls,
+                                    img_id = img_id,
+                                    flash_message = "Image info Saved",
+                                    )
     
     return redirect("/gall_mngt")
 
@@ -1237,3 +1255,58 @@ def img_del():
         return redirect("/gall_mngt")   # return to the galls and photos management page      
     
     return redirect("/gall_mngt")
+
+@app.route("/photos_upload", methods=["GET", "POST"])
+def photos_upload():
+
+    if request.method == "GET":
+
+        return render_template("/photos_upload.html",
+                                    pageinfo = page_info, 
+                                    journal = journal_exist, 
+                                    events = events_exist,
+                                    galls = gall_nav,
+                                    )
+    
+    if request.method == "POST":
+
+        img = request.files['file']
+
+        filename = img.filename 
+
+        if filename != '':
+
+            file_ext = os.path.splitext(filename)[1]
+            if file_ext not in app.config['UPLOAD_EXTENSIONS'] or \
+                file_ext != validate_image(img.stream):
+                
+                return "Invalid image", 400
+            
+            
+        # insert image into DB and get its id to be saved in files #
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('INSERT INTO images (title) VALUES (?);', (("Untitled"),)) # insert image info in images db table 
+        img_index = conn.execute('SELECT id FROM images ORDER BY id DESC;').fetchone()
+        conn.commit()
+        conn.close()
+        
+        fname = str(img_index['id'])+".jpg"
+
+        path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
+
+        thumbpath = os.path.join((cwd+app.config['UPLOAD_PATH']+"thumbs"), fname)
+
+        img.save(path) 
+
+        image_resize(path, 1200) 
+
+        createthumb(path, thumbpath, 600)
+
+        return '', 204
+    
+
+@app.errorhandler(413)
+def too_large(e):
+    return "File is too large", 413
+

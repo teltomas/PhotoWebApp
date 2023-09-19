@@ -39,6 +39,9 @@ def validate_image(stream):
         return None
     return '.' + (format if format != 'jpeg' else 'jpg')
 
+# resize images and create thumbnails to web use #
+# as shown here: https://cloudinary.com/guides/bulk-image-resize/python-image-resize-with-pillow-and-opencv #
+
 def image_resize(path, fixed_height):
 
     image = Image.open(path)
@@ -49,3 +52,10 @@ def image_resize(path, fixed_height):
     
     return
 
+def createthumb(path, thumbpath, size):
+    
+    image = Image.open(path)
+    image.thumbnail((size, size))
+    image.save(thumbpath)
+
+    return

@@ -37,7 +37,7 @@ Edit Gallery Info - {{ gallery.title }}
 
 <div class="mngt_container">
 
-    <h4 style="text-decoration: none;">Images in {{ gallery.title }} Gallery</h4>
+    <h4 style="text-decoration: none;">Images in this gallery</h4>
     <br>
 
     {% if images %}
@@ -46,6 +46,7 @@ Edit Gallery Info - {{ gallery.title }}
                 {% if img.gall_id == gallery.id %}
                 <div class="gall_edit_container">
                 <img class="gall_edit_img" src="static/images/thumbs/{{ img.img_id }}.jpg">
+                <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">{{ img.title }}</p>
                 <form method="post" name="imgrmv">
                     <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">
                         <button class="img_icon" type="submit" formaction="/gall_edit?action=rmv&id={{ gallery.id }}&imgid={{ img.img_id }}"><img class="icons" src="static/icons/remove.png">
@@ -69,7 +70,7 @@ Edit Gallery Info - {{ gallery.title }}
 
 <div class="mngt_container">
 
-    <h4 style="text-decoration: none;">Add images to {{ gallery.title }} Gallery</h4>
+    <h4 style="text-decoration: none;">Add images to this gallery</h4>
     <br>
 
 
@@ -80,6 +81,7 @@ Edit Gallery Info - {{ gallery.title }}
                 {% for img in freeimgs %}                    
                 <div class="gall_edit_container">
                 <img class="gall_edit_img" src="static/images/thumbs/{{ img.id }}.jpg">
+                <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">{{ img.title }}</p>
                 <form method="post" name="img">
                     <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">
                         <button class="img_icon" type="submit" formaction="/gall_edit?action=add&id={{ gallery.id }}&imgid={{ img.id }}"><img class="icons" src="static/icons/add.png">

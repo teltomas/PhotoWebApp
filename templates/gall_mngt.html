@@ -55,6 +55,11 @@
         <br/>
         <h1>Photos</h1>
 
+        
+        <ul>
+            <a href="/photos_upload"><li class="limngt">Upload Photos</li></a>
+        </ul>
+
         <div class="entriesmng" style="min-height: 600px;">
 
             <div class="gall_edit_grid">
@@ -64,6 +69,7 @@
                     {% for img in images %}
                     <div class="gall_edit_container">
                         <img class="gall_edit_img" src="static/images/thumbs/{{ img.id }}.jpg">
+                        <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">{{ img.title }}</p>
                         <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">
                             <form method="get" name="img" style="display: inline;">
                                 <input type="hidden" name="imgid" id="imgid" value="{{ img.id }}">
