@@ -79,9 +79,8 @@ ul {
 }
 
 li {
-    margin: auto;
-    display: inline;
-    padding: 2rem;
+    margin: 2rem;
+    display: inline;    
 }
 
 .menu {
@@ -118,7 +117,7 @@ nav {
   .dropdown-content {
     display: none;
     position: absolute;
-    margin-top: 1.1rem;
+    margin-top: 0;
     margin-left: -0.3rem;
     background-color: #f0f0f0;
     min-width: 160px;
@@ -367,15 +366,20 @@ background-color: #3b3b3b;
 }
 
 .mngt_container {
+    width: 80%;
+    margin:auto;
     margin-top: 2rem;
     margin-bottom: 1rem;
     padding: 0.5rem;
+    text-align: center;
 }
 
 
 
 .limngt {
+    text-align: center;
     display: block;
+    margin:auto;
     margin-top: 1rem;
     width: 40%;
     padding: 2rem;
@@ -436,16 +440,67 @@ background-color: #3b3b3b;
     gap: 2rem;
 }
 
-.gall_edit_img {
-    max-height: 7rem;
+.gall_edit_container {
+    max-height: fit-content;
     margin:0.2rem;
+    text-align: center;
+    padding:0.5rem;
+    background-color:#e2e2e2;
+    border-radius: 5px;
+}
+
+.gall_edit_container:hover {
+    background-color:#ccc;
+    }
+
+.gall_edit_img {
+    max-height: 10rem;
+    margin:0.2rem;
+    border-radius: 3px;
 }
 
 .edit_img {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
     max-height: 8rem;
     margin:0.2rem;
 }
 
+.img_icon {    
+    position:relative;
+    border: none;
+    cursor: pointer;
+    appearance: none;
+    background-color: inherit;
+}
+
+
+.img_icon .tooltiptext {
+    
+    visibility: hidden;
+    width: 200px;
+    color:#727272;
+    text-align: center;
+    padding: 5px 0;
+  
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 1;
+   }
+  
+  .img_icon:hover .tooltiptext {
+    visibility: visible;
+  }
+  
+  .img_edit {
+        max-width: 60%;
+        max-height: 60%;
+        margin: 1rem;
+        padding: 2rem;
+        background-color: white;
+  }
 
 @media only screen and (max-width: 850px) {
     [class="photolink"] {

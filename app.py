@@ -996,7 +996,7 @@ def aspect_mngt():
 
                 fname = "favicon.ico"
 
-                path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
+                path = os.path.join((cwd+"static/icons/"), fname)
 
                 img.save(path)
 
@@ -1077,7 +1077,7 @@ def gall_new():
         return redirect("/gall_mngt")
         
     
-    return redirect("/gall_mngt")  
+    return redirect("/gall_mngt")
 
 @app.route("/gall_edit", methods=["GET", "POST"])
 def gall_edit():
@@ -1087,35 +1087,67 @@ def gall_edit():
     if request.method == "GET":
 
         conn = get_db_connection()
-        gallery = conn.execute('SELECT * FROM galleries WHERE id = ?;', (gall_id,)).fetchone()
+        gallery = conn.execute('SELECT * FROM galleries WHERE id = ? ORDER BY id DESC;', (gall_id,)).fetchone()
+        images = conn.execute('SELECT gall_id, img_id FROM gall_img_index JOIN images ON gall_img_index.img_id = images.id WHERE gall_id = ? ORDER BY img_id DESC;', (gall_id,)).fetchall()
+        freeimgs = conn.execute('SELECT id FROM images WHERE id > 2 EXCEPT SELECT img_id FROM gall_img_index WHERE gall_id = ? ORDER BY id DESC;', (gall_id,)).fetchall()
         conn.close()
-
+        
         return render_template("/gall_edit.html",
-                               pageinfo = page_info, 
+                                pageinfo = page_info, 
                                 journal = journal_exist, 
                                 events = events_exist,
                                 galls = gall_nav,
                                 gallery = gallery,
+                                images = images,
+                                freeimgs = freeimgs,
                                 )
     
     if request.method == "POST":
+            
+        action = request.args.get('action', '')
 
-        if not request.form.get("title"):
-            return render_template("/gall_new.html",
-                               pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                flash_message = "Title is required."
-                                )
+        if action == "edit":
+
+            if not request.form.get("title"):
+                return render_template("/gall_new.html",
+                                pageinfo = page_info, 
+                                    journal = journal_exist, 
+                                    events = events_exist,
+                                    galls = gall_nav,
+                                    flash_message = "Title is required."
+                                    )
+            
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('UPDATE galleries SET title = ?, description = ? WHERE id = ?;', (request.form.get("title"), request.form.get("galldescr"), gall_id,))
+            conn.commit()
+            conn.close()
+
+            return redirect("/gall_edit?id="+gall_id)
         
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute('UPDATE galleries SET title = ?, description = ? WHERE id = ?;', (request.form.get("title"), request.form.get("galldescr"), gall_id,))
-        conn.commit()
-        conn.close()
+        if action == "rmv":
 
-        return redirect("/gall_mngt")
+            img_id = request.args.get('imgid', '')
+
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('DELETE FROM gall_img_index WHERE gall_id = ? AND img_id = ?;', (gall_id, img_id,))
+            conn.commit()
+            conn.close()
+
+            return redirect("/gall_edit?id="+gall_id)  
+        
+        if action == "add":
+
+            img_id = request.args.get('imgid', '')
+
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('INSERT INTO gall_img_index (gall_id, img_id) VALUES (?, ?);', (gall_id, img_id,))
+            conn.commit()
+            conn.close()
+
+            return redirect("/gall_edit?id="+gall_id)  
         
     return redirect("/gall_mngt")  
 
@@ -1139,3 +1171,69 @@ def gall_del():
         return redirect("/gall_mngt")   # return to the galls and photos management page      
     
     return redirect("/gall_mngt")  
+
+@app.route("/img_edit", methods=["GET", "POST"])
+def img_edit():
+
+    img_id = request.args.get('imgid', '')
+
+    if request.method == "GET":
+
+        conn = get_db_connection()
+        img_info = conn.execute('SELECT * FROM images WHERE id =?;', (img_id,)).fetchone()
+        img_galls = conn.execute('SELECT gall_id, title FROM gall_img_index JOIN galleries ON gall_img_index.gall_id = galleries.id WHERE img_id = ?;', (img_id,)).fetchall()
+        conn.close()
+
+        return render_template("/img_edit.html",
+                                    pageinfo = page_info, 
+                                    journal = journal_exist, 
+                                    events = events_exist,
+                                    galls = gall_nav,
+                                    img_info = img_info,
+                                    img_galls = img_galls,
+                                    )
+    
+    if request.method == "POST":
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('UPDATE images SET title = ?, alt = ?, description = ? WHERE id = ?;', (request.form.get("title"), request.form.get("alt"), request.form.get("description"), img_id,))
+        conn.commit()
+        conn.close()
+
+        return redirect("/img_edit?imgid="+img_id)
+    
+    return redirect("/gall_mngt")
+
+@app.route("/img_del", methods=["POST"])
+def img_del():
+
+    ## delete image entry ##
+
+    if not request.form.get("img_id"):
+        return redirect("/gall_mngt")
+
+    img_id = request.form.get("img_id")    # get the id of the image to remove
+
+    print(img_id) 
+
+    if request.method == "POST":
+       
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('DELETE FROM gall_img_index WHERE img_id = ?;', (img_id,)) # remove the image data from the gallery and photos index table
+        cur.execute('DELETE FROM images WHERE id = ?;', (img_id,)) # remove the image data from the images table
+        conn.commit()
+        conn.close()
+
+        if os.path.exists(cwd + app.config['UPLOAD_PATH'] + img_id + ".jpg"):
+
+                os.remove(cwd + app.config['UPLOAD_PATH'] + img_id + ".jpg")
+
+        if os.path.exists(cwd + "/static/images/thumbs/" + img_id + ".jpg"):
+
+                os.remove(cwd + "/static/images/thumbs/" + img_id + ".jpg")
+
+        return redirect("/gall_mngt")   # return to the galls and photos management page      
+    
+    return redirect("/gall_mngt")

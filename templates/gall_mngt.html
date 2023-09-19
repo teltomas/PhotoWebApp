@@ -1,7 +1,7 @@
 {% extends "be_layout.html" %}
 
 {% block title %}
-    Galleries Management
+    Galleries and Photos Management
 {% endblock %}
 
 {% block main %}
@@ -16,7 +16,7 @@
         <a href="/gall_new"><li class="limngt">Create New Gallery</li></a>
     </ul>
 
-    <div class="mngt_container">
+    
         <br/>
         <h1>Galleries</h1>
     
@@ -33,31 +33,17 @@
             <div class="artmngcontainer">
                 <h1 style="font-size: 1em;">{{ row.title }}</h1>
                 <p>{{ row.description }}</p>
-                <br/>
-                {% if img_gall %}
-                <div class="gall_edit_grid">
-                    {% for img in img_gall %}
-                        {% if row.id == img.gall_id %}
-                        <img class="gall_edit_img" src="static/images/thumbs/{{ img.img_id }}.jpg">
-                        {% endif %}
-                    {% endfor %}
-                </div>
-                {% endif %}
+                
                 <br>
-                {% if row.id != 1 %}
-                <form method="get">
+                
+                <form method="get" style="display: inline;">
                     <input type="hidden" name="id" id="id" value="{{ row.id }}">                   
-                    <button class="mngbutton" type="submit" name="edit" formaction="/gall_edit?id={{ row.id }}">Edit Gallery Info</button>
+                    <button class="mngbutton" style="display: inline;" type="submit" name="edit" formaction="/gall_edit?id={{ row.id }}">Manage Gallery</button>
                 </form>
-                <form method="post">
-                    <div class="delbutton">
-                        <button class="mngbutton" type="submit" style="color:red;" id="delete{{ row.id }}" name="delete{{ row.id }}" formaction="/gall_del?id={{ row.id }}">Delete Gallery</button>
-                        <p class="warning" style="font-size: 0.7em; margin-left: 0.3rem; white-space: normal;">By deleting this Gallery all its information will also be deleted. 
-                                This is action can not be undone.</p>
-                    </div>
-                </form>
-                {% endif %}
-                <br/>
+                                
+                <br>
+                <br>
+
             </div>
             {% endfor %}        
     
@@ -65,21 +51,34 @@
     
         {% endif %}
     
-    </div>
-
-
-    <div class="mngt_container">
+        <br/>
         <br/>
         <h1>Photos</h1>
 
-        <div class="entriesmng" style="min-height: 400px;">
+        <div class="entriesmng" style="min-height: 600px;">
 
             <div class="gall_edit_grid">
 
                 {% if images %}
                 <div class="edit_img">
                     {% for img in images %}
+                    <div class="gall_edit_container">
                         <img class="gall_edit_img" src="static/images/thumbs/{{ img.id }}.jpg">
+                        <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">
+                            <form method="get" name="img" style="display: inline;">
+                                <input type="hidden" name="imgid" id="imgid" value="{{ img.id }}">
+                                <button class="img_icon" type="submit" formaction="/img_edit?imgid={{ img.id }}"><img class="icons" src="static/icons/edit.png">
+                                    <span class="tooltiptext" style="font-size: 0.7em; margin-top: 1.6rem; margin-left: -5.5rem;">Edit Image Info</span>
+                                </button>
+                            </form>
+                            <form name="img_dell" method="post" action="/img_del" style="display: inline;">
+                                <input type="hidden" name="img_id" id="img_id" value="{{ img.id }}">
+                                <button class="img_icon" type="submit" style="display: inline;"><img class="icons" style="display: inline;" src="static/icons/delete.png">
+                                    <span class="tooltiptext" style="font-size: 0.7em; margin-top: 1.6rem; margin-left: -8rem;">Delete Image</span>
+                                </button>
+                            </form>
+                        </p>
+                    </div>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -88,7 +87,7 @@
 
         </div>        
     
-    </div>
+    
 
 </div>
 

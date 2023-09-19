@@ -1,0 +1,60 @@
+{% extends "be_layout.html" %}
+
+{% block title %}
+    Edit Image - {{ img_info.title }}
+{% endblock %}
+
+{% block main %}
+
+<div class="mngt_container">
+
+    <h4 style="text-decoration: none;">Edit Image Info - {{ img_info.title }}</h4>
+
+    {% if flash_message %}
+        <br/>
+        <h5>{{ flash_message }}</h5>
+    {% endif %}
+
+        <img class="img_edit" src="static/images/{{ img_info.id }}.jpg" alt="{{ img_info.id }}">
+    
+    <br/>
+    <br/>
+
+    <form action="/img_edit?imgid={{ img_info.id }}" method="post" id="img_edit" name="img_edit">
+        
+        <input type="text" name="title" id="title" maxlength="50" placeholder="Title..." value="{{ img_info.title }}" required>
+        <br/>
+        <input type="text" name="alt" id="alt" maxlength="50" placeholder="Small descrition of what's shown in the photo..." value="{{ img_info.alt }}">
+        <br/>
+        <textarea type="text" name="description" id="description" style="max-height: 10rem;" placeholder="Photo story..." required>{{ img_info.description }}</textarea>
+        <br/>
+        <input type="submit">
+
+    </form>
+
+    {% if img_galls %}
+    <br/>
+    <br/>
+    <h1>Shown in the following galleries:</h1>
+
+
+    <ul>
+        {% for gall in img_galls %}
+        <li class="menu"><a href="/gall_edit?id={{ gall.gall_id }}">{{ gall.title }}</a></li>
+        <br/>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <br/>
+    <br/>
+    <form action="/img_del" method="post" name="img_del" id="img_del">
+        <div class="delbutton">
+            <input type="hidden" id="img_id" name="img_id" value="{{ img_info.id }}">
+            <button class="mngbutton" type="submit" style="display: inline; color:red;" id="delete{{ img_info.id }}" name="delete{{ img_info.id }}">Delete Image</button>
+            <p class="warning" style="font-size: 0.7em; margin-left: 0.3rem; white-space: normal;">By deleting this image all its information will also be deleted and it will be removed from all the galleries where it is shown. 
+                    This is action can not be undone.</p>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

@@ -6,6 +6,8 @@ Edit Gallery Info - {{ gallery.title }}
 
 {% block main %}
 
+{% if gallery.id != 1 %}
+
 <div class="mngt_container">
 
     <h4 style="text-decoration: none;">Edit Gallery Info - {{ gallery.title }}</h4>
@@ -18,16 +20,88 @@ Edit Gallery Info - {{ gallery.title }}
     <br/>
     <br/>
 
-    <form action="/gall_edit?id={{ gallery.id }}" method="post" id="gall_edit" name="ar_edit"gall>
+    <form action="/gall_edit?action=edit&id={{ gallery.id }}" method="post" id="gall_edit" name="gall_edit"gall>
 
         <input type="text" name="title" id="title" maxlength="50" placeholder="Title..." value="{{ gallery.title }}" required>
         <br/>
-        <textarea type="text" name="galldescr" id="galldescr" placeholder="Gallery Description...">{% if gallery.description %}{{ gallery.description }}{% endif %}</textarea>
+        <textarea type="text" name="galldescr" id="galldescr" style="max-height: 10rem;" placeholder="Gallery Description...">{% if gallery.description %}{{ gallery.description }}{% endif %}</textarea>
         <br/>
         <br/>
         <input type="submit">
 
     </form>
+
+</div>
+
+{% endif %}
+
+<div class="mngt_container">
+
+    <h4 style="text-decoration: none;">Images in {{ gallery.title }} Gallery</h4>
+    <br>
+
+    {% if images %}
+        <div class="gall_edit_grid">
+            {% for img in images %}
+                {% if img.gall_id == gallery.id %}
+                <div class="gall_edit_container">
+                <img class="gall_edit_img" src="static/images/thumbs/{{ img.img_id }}.jpg">
+                <form method="post" name="imgrmv">
+                    <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">
+                        <button class="img_icon" type="submit" formaction="/gall_edit?action=rmv&id={{ gallery.id }}&imgid={{ img.img_id }}"><img class="icons" src="static/icons/remove.png">
+                            <span class="tooltiptext" style="font-size: 0.7em; margin-top: 1.6rem; margin-left: -6.6rem;">Remove from Gallery</span>
+                        </button>
+                    </p>
+                    
+                </form>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% else %}
+
+    <h5>Still no photos in this gallery.</h5>
+
+    {% endif %}
+
+
+</div>
+
+<div class="mngt_container">
+
+    <h4 style="text-decoration: none;">Add images to {{ gallery.title }} Gallery</h4>
+    <br>
+
+
+
+    <div class="entriesmng">
+        <div class="gall_edit_grid">
+            {% if freeimgs %}
+                {% for img in freeimgs %}                    
+                <div class="gall_edit_container">
+                <img class="gall_edit_img" src="static/images/thumbs/{{ img.id }}.jpg">
+                <form method="post" name="img">
+                    <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">
+                        <button class="img_icon" type="submit" formaction="/gall_edit?action=add&id={{ gallery.id }}&imgid={{ img.id }}"><img class="icons" src="static/icons/add.png">
+                            <span class="tooltiptext" style="font-size: 0.7em; margin-top: 1.6rem; margin-left: -6.6rem;">Add Image to Gallery</span>
+                        </button>
+                    </p>
+                </form>
+                </div>                    
+                {% endfor %}
+            {% endif %}                    
+        </div>                
+    </div>
+
+    {% if gallery.id != 1 %}
+    <form method="post" style="display: inline; float: left; margin: 3rem;">
+        <div class="delbutton">
+            <button class="mngbutton" type="submit" style="display: inline; color:red;" id="delete{{ gallery.id }}" name="delete{{ gallery.id }}" formaction="/gall_del?id={{ gallery.id }}">Delete Gallery</button>
+            <p class="warning" style="display: inline; font-size: 0.7em; margin-left: 0.3rem; white-space: normal;">By deleting this Gallery all its information will also be deleted. 
+                    This is action can not be undone.</p>
+        </div>
+    </form>
+    {% endif %}
 
 </div>
 
