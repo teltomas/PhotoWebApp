@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Management Login
+{% endblock %}
+
+{% block main %}
+
+<div class="mngt_container">
+
+    <h4 style="text-decoration: none;">Management Login</h4>
+
+    {% if flash_message %}
+        <br/>
+        <h5>{{ flash_message }}</h5>
+    {% endif %}
+    
+    <form action="/login" method="post" id="login" name="login">
+
+        <input type="text" name="username" id="username" placeholder="Username" style="max-width: 20rem;" required>
+        <br/>
+        <input type="password" name="password" id="password" placeholder="Password" style="max-width: 20rem;" required>
+        <br/>
+        <br/>
+        <input type="submit">
+
+    </form>
+
+</div>
+
+{% endblock %}

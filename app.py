@@ -1,14 +1,14 @@
 import os
 import sqlite3
 from datetime import datetime
-from flask import Flask, redirect, render_template, session, request, abort
+from flask import Flask, redirect, render_template, session, request
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_mail import Mail, Message
 
 
 from front import date, capital, dblink
-from back import validate_image, get_db_connection, image_resize, createthumb
+from back import validate_image, get_db_connection, image_resize, createthumb, login_required
 
 # configure app
 app = Flask(__name__) 
@@ -218,7 +218,75 @@ app.config['SESSION_FILE_THRESHOLD'] = 10
 Session(app)
 
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """Log user in"""
+
+    # Forget any user_id
+    session.clear()
+
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+
+        # Ensure username was submitted
+        if not request.form.get("username"):
+            return render_template("/login.html", 
+                               pageinfo = page_info, 
+                               journal = journal_exist, 
+                               events = events_exist, 
+                               galls = gall_nav,
+                               flash_message = "Must provide username")
+
+        # Ensure password was submitted
+        elif not request.form.get("password"):
+            return render_template("/login.html", 
+                               pageinfo = page_info, 
+                               journal = journal_exist, 
+                               events = events_exist, 
+                               galls = gall_nav,
+                               flash_message = "Must provide password")
+
+        # Query database for username
+       
+        conn = get_db_connection()
+        user = conn.execute('SELECT id, username, hash FROM page_info WHERE username = ?', (request.form.get("username"),)).fetchone()
+        conn.close()
+
+        # Ensure username exists and password is correct
+        if not user or not check_password_hash(user["hash"], request.form.get("password")):
+            return render_template("/login.html", 
+                               pageinfo = page_info, 
+                               journal = journal_exist, 
+                               events = events_exist, 
+                               galls = gall_nav,
+                               flash_message = "Invalid username or password")
+
+        # Remember which user has logged in
+        session["user_id"] = user["id"]
+
+        # Redirect user to home page
+        return redirect("/management")
+
+    # User reached route via GET (as by clicking a link or via redirect)
+    else:
+        return render_template("login.html",                                
+                               pageinfo = page_info, 
+                               journal = journal_exist, 
+                               events = events_exist, 
+                               galls = gall_nav,)
+
+@app.route("/logout")
+def logout():
+    """Log user out"""
+
+    # Forget any user_id
+    session.clear()
+
+    # Redirect user to login form
+    return redirect("/")
+
 @app.route("/management")
+@login_required
 def mngmt():
 
     # render main management page #
@@ -230,6 +298,7 @@ def mngmt():
 
 
 @app.route("/ar_mngt", methods=["GET", "POST"])
+@login_required
 def ar_mngmt():
 
     # management of the existing articles - both events and journal entries #
@@ -360,7 +429,11 @@ def ar_mngmt():
                 fname = "article" + str(ar_id) + ".jpg"
                 dbname= "article" + str(ar_id)
 
-                img.save(os.path.join((cwd+app.config['UPLOAD_PATH']), fname)) 
+                path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
+
+                img.save(path) 
+
+                image_resize(path, 800) 
 
                 # update article in db with image name #
 
@@ -375,6 +448,7 @@ def ar_mngmt():
     
 
 @app.route("/ar_new", methods=["GET", "POST"])
+@login_required
 def ar_new():
 
     # creation of new articles #
@@ -461,7 +535,11 @@ def ar_new():
             fname = "article" + str(ar_id) + ".jpg"
             dbname= "article" + str(ar_id)
 
-            img.save(os.path.join((cwd+app.config['UPLOAD_PATH']), fname)) 
+            path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
+
+            img.save(path) 
+
+            image_resize(path, 800) 
 
             # update article in db with image name #
 
@@ -474,6 +552,7 @@ def ar_new():
         return redirect("ar_mngt?artp=" + ar_type)
     
 @app.route("/archive", methods=["GET", "POST"])
+@login_required
 def archive():
 
     # get from db the archived articles #
@@ -539,6 +618,7 @@ def archive():
     return redirect("/archive")
 
 @app.route("/pg_mngt", methods=["GET"])
+@login_required
 def pg_mngt():
 
     # render page of aspect and base info management selection #
@@ -550,6 +630,7 @@ def pg_mngt():
                             )
 
 @app.route("/profile_mngt", methods=["GET", "POST"])
+@login_required
 def profile_mngt():
 
     # update info variables to fill forms #
@@ -791,6 +872,7 @@ def profile_mngt():
     return redirect("/profile_mngt")
 
 @app.route("/base_mngt", methods=["GET", "POST"])
+@login_required
 def base_mngt():
 
     # update info variables to fill forms #
@@ -927,6 +1009,7 @@ def base_mngt():
     return redirect("/base_mngt")
 
 @app.route("/aspect_mngt", methods=["GET", "POST"])
+@login_required
 def aspect_mngt():
 
     if request.method == "GET":
@@ -1013,6 +1096,7 @@ def aspect_mngt():
                                     galls = gall_nav)
     
 @app.route("/gall_mngt", methods=["GET", "POST"])
+@login_required
 def gall_mngt():
 
     conn = get_db_connection()
@@ -1045,6 +1129,7 @@ def gall_mngt():
     return redirect("/gall_mngt")  
 
 @app.route("/gall_new", methods=["GET", "POST"])
+@login_required
 def gall_new():
 
     if request.method == "GET":
@@ -1080,6 +1165,7 @@ def gall_new():
     return redirect("/gall_mngt")
 
 @app.route("/gall_edit", methods=["GET", "POST"])
+@login_required
 def gall_edit():
 
     gall_id = request.args.get('id', '')
@@ -1161,6 +1247,7 @@ def gall_edit():
 
 
 @app.route("/gall_del", methods=["POST"])
+@login_required
 def gall_del():
 
     ## delete gallery entry ##
@@ -1181,6 +1268,7 @@ def gall_del():
     return redirect("/gall_mngt")  
 
 @app.route("/img_edit", methods=["GET", "POST"])
+@login_required
 def img_edit():
 
     if request.args.get('imgid', ''):
@@ -1224,6 +1312,7 @@ def img_edit():
     return redirect("/gall_mngt")
 
 @app.route("/img_del", methods=["POST"])
+@login_required
 def img_del():
 
     ## delete image entry ##
@@ -1257,6 +1346,7 @@ def img_del():
     return redirect("/gall_mngt")
 
 @app.route("/photos_upload", methods=["GET", "POST"])
+@login_required
 def photos_upload():
 
     if request.method == "GET":

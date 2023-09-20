@@ -4,6 +4,8 @@ import sqlite3
 import PIL
 
 from PIL import Image
+from flask import redirect, session
+from functools import wraps
 
 # image resizing as the tutorial from https://www.holisticseo.digital/python-seo/resize-image/ #
 
@@ -59,3 +61,16 @@ def createthumb(path, thumbpath, size):
     image.save(thumbpath)
 
     return
+
+def login_required(f):
+    """
+    Decorate routes to require login.
+
+    http://flask.pocoo.org/docs/0.12/patterns/viewdecorators/
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get("user_id") is None:
+            return redirect("/login")
+        return f(*args, **kwargs)
+    return decorated_function

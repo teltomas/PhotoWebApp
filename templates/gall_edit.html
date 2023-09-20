@@ -45,7 +45,12 @@ Edit Gallery Info - {{ gallery.title }}
             {% for img in images %}
                 {% if img.gall_id == gallery.id %}
                 <div class="gall_edit_container">
-                <img class="gall_edit_img" src="static/images/thumbs/{{ img.img_id }}.jpg">
+                    <div class="image_wrapper">
+                        <form name="rmvselector" id="rmvselector">
+                            <input type="checkbox" id="{{ img.img_id }}" name="img{{ img.img_id }}" value="{{ img.img_id }}">
+                        </form>
+                        <img class="gall_edit_img" src="static/images/thumbs/{{ img.img_id }}.jpg">
+                    </div>
                 <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">{{ img.title }}</p>
                 <form method="post" name="imgrmv">
                     <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">
@@ -80,7 +85,12 @@ Edit Gallery Info - {{ gallery.title }}
             {% if freeimgs %}
                 {% for img in freeimgs %}                    
                 <div class="gall_edit_container">
-                <img class="gall_edit_img" src="static/images/thumbs/{{ img.id }}.jpg">
+                    <div class="image_wrapper">
+                        <form name="addselector" id="addselector">
+                            <input type="checkbox" id="{{ img.id }}" name="img{{ img.id }}" value="{{ img.id }}">
+                        </form>
+                        <img class="gall_edit_img" src="static/images/thumbs/{{ img.id }}.jpg">
+                    </div>
                 <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">{{ img.title }}</p>
                 <form method="post" name="img">
                     <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">

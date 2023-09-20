@@ -68,7 +68,12 @@
                 <div class="edit_img">
                     {% for img in images %}
                     <div class="gall_edit_container">
-                        <img class="gall_edit_img" src="static/images/thumbs/{{ img.id }}.jpg">
+                        <div class="image_wrapper">
+                            <form name="selector" id="selector" method="post">
+                                <input type="checkbox" id="{{ img.id }}" name="img{{ img.id }}" value="{{ img.id }}">
+                            </form>
+                            <img class="gall_edit_img" src="static/images/thumbs/{{ img.id }}.jpg">
+                        </div>
                         <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">{{ img.title }}</p>
                         <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">
                             <form method="get" name="img" style="display: inline;">

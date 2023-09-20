@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600&family=Roboto:wght@100;400;500&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Inter:wght@100;200;300;400;500;600&family=Roboto:wght@100;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0');
 
 * {
      margin: 0;
@@ -311,6 +312,43 @@ input[type=submit]:hover {
 background-color: #3b3b3b;
 }
 
+input[type=checkbox] { 
+    position: absolute;
+    appearance: none;
+    -webkit-appearance: none;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+input[type=checkbox]::after {
+    font-family: Material Symbols Outlined;
+    font-weight: 900;
+    font-size: 80px;
+    content:"\e5ca";
+    color:#ffffff;
+    display: none;
+}
+
+input[type=checkbox]:checked { 
+    appearance: none;
+    -webkit-appearance: none;
+    background-color:#cecece;
+    border-radius: 5px;
+    opacity: 0.7;
+}
+
+input[type=checkbox]:checked:after {
+    display: block;
+}
+
+
+
 /* flex photo gallery as instructed in the following vídeo https://www.youtube.com/watch?v=3TN9J3pCn6k&list=WL&index=2 */
 .photo_gallery {
     display: flex;
@@ -459,6 +497,12 @@ background-color: #3b3b3b;
     border-radius: 3px;
 }
 
+.image_wrapper {
+    width: fit-content;
+    height: fit-content;
+    position: relative;
+}
+
 .edit_img {
     display: flex;
     flex-wrap: wrap;
@@ -501,6 +545,8 @@ background-color: #3b3b3b;
         padding: 2rem;
         background-color: white;
   }
+
+
 
 @media only screen and (max-width: 850px) {
     [class="photolink"] {
