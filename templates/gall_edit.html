@@ -40,6 +40,8 @@ Edit Gallery Info - {{ gallery.title }}
     <h4 style="text-decoration: none;">Images in this gallery</h4>
     <br>
 
+    <!-- Show images from Gallery -->
+
     {% if images %}
         <div class="gall_edit_grid">
             {% for img in images %}
@@ -47,7 +49,7 @@ Edit Gallery Info - {{ gallery.title }}
                 <div class="gall_edit_container">
                     <div class="image_wrapper">
                         <form name="rmvselector" id="rmvselector">
-                            <input type="checkbox" id="{{ img.img_id }}" name="img{{ img.img_id }}" value="{{ img.img_id }}">
+                            <input type="checkbox" name="gallsel" id="gallsel" onclick="" value="{{ img.img_id }}">
                         </form>
                         <img class="gall_edit_img" src="static/images/thumbs/{{ img.img_id }}.jpg">
                     </div>
@@ -64,21 +66,47 @@ Edit Gallery Info - {{ gallery.title }}
                 {% endif %}
             {% endfor %}
         </div>
+
+        <!-- Gallery images selection option icons to remove photos -->
+
+        <div class="iconscontainer">  
+            <button class="iconsbtn" onclick="toggleTrue('gallsel');">
+                <img src="static/icons/select.png" alt="Select All" style="height: 1.2rem;">
+                <span class="tooltiptext" style="font-size: 0.7em; margin-left: 2rem;">Select All</span>
+            </button>
+            <button class="iconsbtn" onclick="toggleFalse('gallsel');">
+                <img src="static/icons/deselect.png" alt="Deselect All" style="height: 1.2rem;">
+                <span class="tooltiptext" style="font-size: 0.7em; margin-left: 1rem;">Deselect All</span>
+            </button>
+            <button class="iconsbtn" onclick="toggleSwitch('gallsel');">
+                <img src="static/icons/switch.png" alt="Switch Selection" style="border-radius: 3px; height: 1.2rem;">
+                <span class="tooltiptext" style="font-size: 0.7em; margin-left: 0.2rem;">Switch Selection</span>
+            </button>     
+            <button class="iconsbtn" onclick="rmvImgs();" style="margin-left: 1rem;">
+                <img src="static/icons/remove.png" alt="Remove Selected" style="height: 1.2rem;">
+                <span class="tooltiptext" style="font-size: 0.7em; margin-left: -2.2rem;">Remove Selected</span>
+            </button>
+            <form method="post" action="/imgsrmv" name="gallrmv" id="gallrmv">
+                <input type="hidden" name="gall_id" id="gall_id" value="{{ gallery.id }}">
+                <input type="hidden" name="imgrmvid" id="imgrmvid" value="">
+            </form>
+        </div> 
+
+
     {% else %}
 
     <h5>Still no photos in this gallery.</h5>
 
     {% endif %}
 
-
 </div>
+
+<!-- Show images not in the Gallery -->
 
 <div class="mngt_container">
 
     <h4 style="text-decoration: none;">Add images to this gallery</h4>
     <br>
-
-
 
     <div class="entriesmng">
         <div class="gall_edit_grid">
@@ -87,7 +115,7 @@ Edit Gallery Info - {{ gallery.title }}
                 <div class="gall_edit_container">
                     <div class="image_wrapper">
                         <form name="addselector" id="addselector">
-                            <input type="checkbox" id="{{ img.id }}" name="img{{ img.id }}" value="{{ img.id }}">
+                            <input type="checkbox" id="addselect" name="addselect" value="{{ img.id }}">
                         </form>
                         <img class="gall_edit_img" src="static/images/thumbs/{{ img.id }}.jpg">
                     </div>
@@ -104,6 +132,31 @@ Edit Gallery Info - {{ gallery.title }}
             {% endif %}                    
         </div>                
     </div>
+
+    <!-- Images selection option icons to add photos to the gallery -->
+
+    <div class="iconscontainer">  
+        <button class="iconsbtn" onclick="toggleTrue('addselect');">
+            <img src="static/icons/select.png" alt="Select All" style="height: 1.2rem;">
+            <span class="tooltiptext" style="font-size: 0.7em; margin-left: 2rem;">Select All</span>
+        </button>
+        <button class="iconsbtn" onclick="toggleFalse('addselect');">
+            <img src="static/icons/deselect.png" alt="Deselect All" style="height: 1.2rem;">
+            <span class="tooltiptext" style="font-size: 0.7em; margin-left: 1rem;">Deselect All</span>
+        </button>
+        <button class="iconsbtn" onclick="toggleSwitch('addselect');">
+            <img src="static/icons/switch.png" alt="Switch Selection" style="border-radius: 3px; height: 1.2rem;">
+            <span class="tooltiptext" style="font-size: 0.7em; margin-left: 0.2rem;">Switch Selection</span>
+        </button>
+        <button class="iconsbtn" onclick="addImgs();" style="margin-left: 1rem;">
+            <img src="static/icons/add.png" alt="Add Selected" style="height: 1.2rem;">
+            <span class="tooltiptext" style="font-size: 0.7em; margin-left: -2.2rem;">Add Selected</span>
+        </button>
+        <form method="post" action="/imgsadd" name="galladd" id="galladd">
+            <input type="hidden" name="gall_id" id="gall_id" value="{{ gallery.id }}">
+            <input type="hidden" name="imgaddid" id="imgaddid" value="">
+        </form>
+    </div> 
 
     {% if gallery.id != 1 %}
     <form method="post" style="display: inline; float: left; margin: 3rem;">

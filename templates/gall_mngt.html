@@ -69,8 +69,8 @@
                     {% for img in images %}
                     <div class="gall_edit_container">
                         <div class="image_wrapper">
-                            <form name="selector" id="selector" method="post">
-                                <input type="checkbox" id="{{ img.id }}" name="img{{ img.id }}" value="{{ img.id }}">
+                            <form name="imgselectform" id="imgselectform" method="post">
+                                <input type="checkbox" id="imgselect" name="imgselect" value="{{ img.id }}">
                             </form>
                             <img class="gall_edit_img" src="static/images/thumbs/{{ img.id }}.jpg">
                         </div>
@@ -92,19 +92,46 @@
                     </div>
                     {% endfor %}
                 </div>
+                {% else %}
+                <h5>No images available</h5>
                 {% endif %}
 
             </div>
+            
 
-        </div>        
-    
-    
+        </div>     
+        <div class="iconscontainer">  
+            <button class="iconsbtn" onclick="toggleTrue('imgselect');">
+                <img src="static/icons/select.png" alt="Select All" style="height: 1.2rem;">
+                <span class="tooltiptext" style="font-size: 0.7em; margin-left: 2rem;">Select All</span>
+            </button>
+            <button class="iconsbtn" onclick="toggleFalse('imgselect');">
+                <img src="static/icons/deselect.png" alt="Deselect All" style="height: 1.2rem;">
+                <span class="tooltiptext" style="font-size: 0.7em; margin-left: 1rem;">Deselect All</span>
+            </button>
+            <button class="iconsbtn" onclick="toggleSwitch('imgselect');">
+                <img src="static/icons/switch.png" alt="Switch Selection" style="border-radius: 3px; height: 1.2rem;">
+                <span class="tooltiptext" style="font-size: 0.7em; margin-left: 0.2rem;">Switch Selection</span>
+            </button>
+            <button class="iconsbtn" onclick="confdel();" style="margin-left: 1rem;">
+                <img src="static/icons/delete.png" alt="Delete Selected" style="height: 1.2rem;">
+                <span class="tooltiptext" style="font-size: 0.7em; margin-left: -1rem;">Delete Selected Images</span>
+            </button>
+        </div> 
+        <div class="delbutton" id="delbtn" style="display: none;">
+            <button class="mngbutton" style=" display: inline;" onclick="confdel();" id="cancel" name="cancel">Cancel</button>
+            <form method="post" name="imgsdeletion" id="imgsdeletion">
+                    <input type="hidden" name="imgsarray" id="imgsarray" value="">
+                    <button class="mngbutton" type="submit" style="display: inline; color:red; margin-left: 0rem;" id="imgselect" name="imgselect" formaction="/multimagesdel">Confirm Images Deletion</button>
+                    <p style="font-size: 0.7em; margin-top: 1rem; margin-left: 0.3rem; white-space: normal;">By deleting the selected images all their information will also be deleted and will no longer appear in any gallery. 
+                            This is action can not be undone.</p>                
+            </form>
+        </div>
 
 </div>
 
 <ul>
     <a href="javascript:history.back()"><li class="limngt">Return</li></a>
 </ul>
-
 
 {% endblock %}

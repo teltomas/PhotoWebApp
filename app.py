@@ -1298,16 +1298,7 @@ def img_edit():
         conn.commit()
         conn.close()
 
-        return render_template("/img_edit.html",
-                                    pageinfo = page_info, 
-                                    journal = journal_exist, 
-                                    events = events_exist,
-                                    galls = gall_nav,
-                                    img_info = img_info,
-                                    img_galls = img_galls,
-                                    img_id = img_id,
-                                    flash_message = "Image info Saved",
-                                    )
+        return redirect("/gall_mngt")
     
     return redirect("/gall_mngt")
 
@@ -1321,8 +1312,6 @@ def img_del():
         return redirect("/gall_mngt")
 
     img_id = request.form.get("img_id")    # get the id of the image to remove
-
-    print(img_id) 
 
     if request.method == "POST":
        
@@ -1342,6 +1331,37 @@ def img_del():
                 os.remove(cwd + "/static/images/thumbs/" + img_id + ".jpg")
 
         return redirect("/gall_mngt")   # return to the galls and photos management page      
+    
+    return redirect("/gall_mngt")
+
+@app.route("/multimagesdel", methods=["POST"])
+@login_required
+def multi_img_del():
+
+    ## delete multi image entry ##
+
+    if request.form.get("imgsarray"):
+
+        ids = request.form.get("imgsarray").split(",") # get image ids and split them in an array
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        for id in ids:  
+
+            cur.execute('DELETE FROM gall_img_index WHERE img_id = ?;', (id,)) # remove the image data from the gallery and photos index table
+            cur.execute('DELETE FROM images WHERE id = ?;', (id,)) # remove the image data from the images table
+
+            if os.path.exists(cwd + app.config['UPLOAD_PATH'] + id + ".jpg"):
+
+                os.remove(cwd + app.config['UPLOAD_PATH'] + id + ".jpg")
+
+            if os.path.exists(cwd + "/static/images/thumbs/" + id + ".jpg"):
+
+                os.remove(cwd + "/static/images/thumbs/" + id + ".jpg")
+
+        conn.commit()
+        conn.close()
     
     return redirect("/gall_mngt")
 
@@ -1400,3 +1420,52 @@ def photos_upload():
 def too_large(e):
     return "File is too large", 413
 
+@app.route("/imgsrmv", methods=["POST"])
+@login_required
+def imgsrmv():    
+
+    if not request.form.get("gall_id"):
+        return redirect ("/gall_mngt")
+
+    gall_id = request.form.get("gall_id")
+
+    imgsIds = request.form.get("imgrmvid").split(",")
+    
+    if imgsIds:
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        for id in imgsIds:  
+
+            cur.execute('DELETE FROM gall_img_index WHERE gall_id = ? AND img_id = ?;', (gall_id, id,)) # remove the image registry from gallery in the image to gall index table 
+            
+        conn.commit()
+        conn.close() 
+
+    return redirect("/gall_edit?id="+gall_id)  
+
+@app.route("/imgsadd", methods=["POST"])
+@login_required
+def imgsadd():    
+
+    if not request.form.get("gall_id"):
+        return redirect ("/gall_mngt")
+
+    gall_id = request.form.get("gall_id")
+
+    imgsIds = request.form.get("imgaddid").split(",")
+    
+    if imgsIds:
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        for id in imgsIds:  
+
+            cur.execute('INSERT INTO gall_img_index (gall_id, img_id) VALUES (?, ?);', (gall_id, id,)) # add image to gallery registry into the image to gall index table 
+            
+        conn.commit()
+        conn.close() 
+
+    return redirect("/gall_edit?id="+gall_id)  
