@@ -78,6 +78,8 @@ def main():
     sc_img = conn.execute('SELECT * FROM gall_img_index WHERE gall_id = 1;').fetchall()
     conn.close()
 
+    sc_img.reverse()
+
     return render_template("/main.html",
                             pageinfo = page_info,
                             journal = journal_exist,
@@ -540,7 +542,7 @@ def ar_new():
             if filename != '':
 
                 file_ext = os.path.splitext(filename)[1]
-                if file_ext not in app.config['UPLOAD_EXTENSIONS'] or \
+                if file_ext not in ['.jpg', '.jpeg'] or \
                     file_ext != validate_image(img.stream):
                     
                     return render_template("ar_mngt.html",
@@ -727,7 +729,7 @@ def profile_mngt():
                 if filename != '':
 
                     file_ext = os.path.splitext(filename)[1]
-                    if file_ext not in app.config['UPLOAD_EXTENSIONS'] or \
+                    if file_ext not in ['.jpg', '.jpeg'] or \
                         file_ext != validate_image(img.stream):
                         
                         return render_template("profile_mngt.html",
@@ -780,7 +782,7 @@ def profile_mngt():
                 if filename != '':
 
                     file_ext = os.path.splitext(filename)[1]
-                    if file_ext not in app.config['UPLOAD_EXTENSIONS'] or \
+                    if file_ext not in ['.jpg', '.jpeg', '.png'] or \
                         file_ext != validate_image(img.stream):
                         
                         return render_template("profile_mngt.html",
@@ -1054,7 +1056,7 @@ def aspect_mngt():
                 if filename != '':
 
                     file_ext = os.path.splitext(filename)[1]
-                    if file_ext not in app.config['UPLOAD_EXTENSIONS'] or \
+                    if file_ext not in ['.jpg', '.jpeg'] or \
                         file_ext != validate_image(img.stream):
                         
                         return render_template("aspect_mngt.html",
@@ -1087,7 +1089,7 @@ def aspect_mngt():
                 if filename != '':
 
                     file_ext = os.path.splitext(filename)[1]
-                    if file_ext not in app.config['UPLOAD_EXTENSIONS']:
+                    if file_ext not in ['.ico']:
                         
                         return render_template("aspect_mngt.html",
                                 pageinfo = page_info, 
@@ -1199,6 +1201,20 @@ def gall_edit():
 
         images.reverse()
 
+        # split the quantity of images in three diferent arrays to display in the page grid #
+        imgs_col1 = []
+        imgs_col2 = []
+        imgs_col3 = []
+    
+        i = 0
+        while i < len(images):
+            imgs_col1.append(images[i])
+            if i+1 < len(images): 
+                imgs_col2.append(images[i+1])
+            if i+2 < len(images): 
+                imgs_col3.append(images[i+2])
+            i = i + 3
+
         for img in freeimgs:
 
             conn = get_db_connection()
@@ -1214,6 +1230,9 @@ def gall_edit():
                                 galls = gall_nav,
                                 gallery = gallery,
                                 images = images,
+                                imgs_col1 = imgs_col1,
+                                imgs_col2 = imgs_col2,
+                                imgs_col3 = imgs_col3,
                                 freeimgs = freeimgs,
                                 )
     
@@ -1408,7 +1427,7 @@ def photos_upload():
         if filename != '':
 
             file_ext = os.path.splitext(filename)[1]
-            if file_ext not in app.config['UPLOAD_EXTENSIONS'] or \
+            if file_ext not in ['.jpg', '.jpeg'] or \
                 file_ext != validate_image(img.stream):
                 
                 return "Invalid image", 400

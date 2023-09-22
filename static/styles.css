@@ -453,7 +453,7 @@ input[type=checkbox]:checked:after {
     display: flex;
     padding: 1rem;
     gap: 1rem;
-    margin-top: 2rem;
+    margin: auto;
     margin-bottom: 2rem;
 }
 
@@ -596,7 +596,7 @@ input[type=checkbox]:checked:after {
     }
 
 .gall_edit_img {
-    max-height: 10rem;
+    max-width: 10rem;
     margin:0.2rem;
     border-radius: 3px;
 }
