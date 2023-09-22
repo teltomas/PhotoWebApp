@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import re
 from datetime import datetime
 from flask import Flask, redirect, render_template, session, request
 from flask_session import Session
@@ -144,6 +145,21 @@ def contact():
     if request.method == "POST":
 
         # fetch the info sent by the user #
+
+        # revalidate email address input before sending #
+        # as shown here https://stackabuse.com/python-validate-email-address-with-regular-expressions-regex/ #
+
+        regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
+        
+        if not request.form.get("email") or not re.fullmatch(regex, request.form.get("email")) :
+
+            return render_template("/contact.html", 
+                                   pageinfo = page_info, 
+                                   journal = journal_exist, 
+                                   events = events_exist, 
+                                   galls = gall_nav,
+                                   flash_message = "Invalid email address..."), 400
+        
         # sending the email requested by the user, config per demonstration in https://pythonbasics.org/flask-mail/ #
 
         try:        
@@ -156,7 +172,7 @@ def contact():
                                    journal = journal_exist, 
                                    events = events_exist, 
                                    galls = gall_nav,
-                                   flash_message = "Sorry! There was an error sending the message...")
+                                   flash_message = "Sorry! There was an error sending the message..."), 500
         
         return render_template("/contact.html", 
                                pageinfo = page_info, 
@@ -174,15 +190,19 @@ def gallery():
 
     conn = get_db_connection()
     gall_info = conn.execute('SELECT * FROM galleries WHERE id = ?', (gall_id,)).fetchone()
-    imgs_info = conn.execute('SELECT * FROM gall_img_index JOIN images ON gall_img_index.img_id = images.id WHERE gall_id = ? ORDER BY img_id DESC', (gall_id,)).fetchall()
+    imgs_info = conn.execute('SELECT * FROM gall_img_index JOIN images ON gall_img_index.img_id = images.id WHERE gall_id = ?', (gall_id,)).fetchall()
     conn.close()
 
-    # split the quantity of images in three diferent arrays to display in the page grid #
-    imgs_col1 = []
-    imgs_col2 = []
-    imgs_col3 = []
 
     if imgs_info:
+
+        imgs_info.reverse()
+
+    # split the quantity of images in three diferent arrays to display in the page grid #
+        imgs_col1 = []
+        imgs_col2 = []
+        imgs_col3 = []
+    
         i = 0
         while i < len(imgs_info):
             imgs_col1.append(imgs_info[i])
@@ -235,7 +255,7 @@ def login():
                                journal = journal_exist, 
                                events = events_exist, 
                                galls = gall_nav,
-                               flash_message = "Must provide username")
+                               flash_message = "Must provide username"), 400
 
         # Ensure password was submitted
         elif not request.form.get("password"):
@@ -244,7 +264,7 @@ def login():
                                journal = journal_exist, 
                                events = events_exist, 
                                galls = gall_nav,
-                               flash_message = "Must provide password")
+                               flash_message = "Must provide password"), 400
 
         # Query database for username
        
@@ -259,7 +279,7 @@ def login():
                                journal = journal_exist, 
                                events = events_exist, 
                                galls = gall_nav,
-                               flash_message = "Invalid username or password")
+                               flash_message = "Invalid username or password"), 400
 
         # Remember which user has logged in
         session["user_id"] = user["id"]
@@ -388,7 +408,7 @@ def ar_mngmt():
                                 galls = gall_nav,
                                 article = article,
                                 ar_type = ar_type,
-                                flash_message = "Content text required!")
+                                flash_message = "Content text required!"), 400
 
             # get and confirm link contents - set null if empty #
             if request.form.get("link"):
@@ -443,7 +463,6 @@ def ar_mngmt():
                 conn.commit()
                 conn.close()
 
-        print(ar_type)
         return redirect("ar_mngt?artp=" + ar_type)
     
 
@@ -769,7 +788,7 @@ def profile_mngt():
                                 journal = journal_exist, 
                                 events = events_exist,
                                 galls = gall_nav,
-                                flash_message = "Failed to upload image.")
+                                flash_message = "Failed to upload image."), 400
 
                 fname = "1" + os.path.splitext(filename)[1]
 
@@ -928,7 +947,7 @@ def base_mngt():
                                 journal = journal_exist, 
                                 events = events_exist,
                                 galls = gall_nav,
-                                flash_message = "Email key updated"
+                                flash_message = "Email token updated"
                                 )
         
         if action == "passchange":
@@ -1174,9 +1193,11 @@ def gall_edit():
 
         conn = get_db_connection()
         gallery = conn.execute('SELECT * FROM galleries WHERE id = ? ORDER BY id DESC;', (gall_id,)).fetchone()
-        images = conn.execute('SELECT gall_id, img_id, title FROM gall_img_index JOIN images ON gall_img_index.img_id = images.id WHERE gall_id = ? ORDER BY img_id DESC;', (gall_id,)).fetchall()
+        images = conn.execute('SELECT gall_id, img_id, title FROM gall_img_index JOIN images ON gall_img_index.img_id = images.id WHERE gall_id = ?;', (gall_id,)).fetchall()
         freeimgs = conn.execute('SELECT id FROM images WHERE id > 2 EXCEPT SELECT img_id FROM gall_img_index WHERE gall_id = ? ORDER BY id DESC;', (gall_id,)).fetchall()
         conn.close()
+
+        images.reverse()
 
         for img in freeimgs:
 

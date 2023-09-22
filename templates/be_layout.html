@@ -22,11 +22,12 @@
 
     <body>
         
-        <nav>
+        
+        <nav class="nonres">
                         
-            <ul>
+            <ul name="navmenu" id="navmenu">
 
-                <li class="menu"><a target="_blank" href="/main">Home</a></li>
+                <li class="menu"><a href="/main" target="_blank">Home</a></li>
 
                 <div class="dropdown">
 
@@ -34,63 +35,122 @@
                     {% if galls %}
                         <div class="dropdown-content">
                             {% for gall in galls %}
-                            <a target="_blank" href="galleries?id={{ gall.id }}">{{ gall.title }}</a>
+                            <a href="galleries?id={{ gall.id }}" target="_blank">{{ gall.title }}</a>
                             {% endfor %}
                         </div>
                     {% endif %}
-                
                 </div>
 
+
                 {% if journal %}
-                <li class="menu"><a target="_blank" href="/article?artp=journal">Journal</a></li>
+                <li class="menu"><a href="/article?artp=journal" target="_blank">Journal</a></li>
                 {% endif %}
                 {% if events %}
-                <li class="menu"><a target="_blank" href="/article?artp=event">Events</a></li>
+                <li class="menu"><a href="/article?artp=event" target="_blank">Events</a></li>
                 {% endif %}
                 {% if pageinfo.about %}
-                <li class="menu"><a target="_blank" href="/about">About</a></li>
+                <li class="menu"><a href="/about" target="_blank">About</a></li> 
                 {% endif %}
-                <li class="menu"><a target="_blank" href="/contact">Contact</a></li>
+                {% if pageinfo.page_email %}
+                <li class="menu"><a href="/contact" target="_blank">Contact</a></li>
+                {% endif %}
 
             </ul>
+            <ul class="navmenumngt">
+                <li class="menu"><a href="management">Main</a></li>
+                <li class="menu"><a href="gall_mngt">Manage Galleries and Photos</a></li>
+                <li class="menu"><a href="ar_mngt?artp=journal">Manage Journal</a></li>
+                <li class="menu"><a href="ar_mngt?artp=event">Manage Events</a></li>
+                <li class="menu"><a href="archive">Archive</a></li>
+                <li class="menu"><a href="pg_mngt">Manage User and Page Info</a></li>
+                <li class="menu"><a href="logout">Logout</a></li>
+            </ul>
+        </nav>
+
+        <!-- Responsive menu activated with small viewport -->
+        <nav class="resp">
+
+            <button class="menubttn" id="menubttn" name="menubttn" onclick="openclose()">
+                <img class="menuresimg" src="static/icons/menu.png" alt="menu">
+            </button>
+
+            <div class="menurescontainer" name="menulist" id="menulist">
+
+                <ul>
+
+                    <li class="menuresli" style="border-top: none;"><a href="/main" target="_blank">Home</a></li>
+
+                    {% if galls %}
+                        {% for gall in galls %}
+                        <li class="menuresli">                        
+                            <a href="galleries?id={{ gall.id }}" target="_blank">{{ gall.title }}</a>                        
+                        </li>
+                        {% endfor %}                    
+                    {% endif %}
+
+                    {% if journal %}
+                    <li class="menuresli"><a href="/article?artp=journal" target="_blank">Journal</a></li>
+                    {% endif %}
+
+                    {% if events %}
+                    <li class="menuresli"><a href="/article?artp=event" target="_blank">Events</a></li>
+                    {% endif %}
+
+                    {% if pageinfo.about %}
+                    <li class="menuresli"><a href="/about" target="_blank">About</a></li> 
+                    {% endif %}
+
+                    {% if pageinfo.page_email %}
+                    <li class="menuresli"><a href="/contact" target="_blank">Contact</a></li>
+                    {% endif %}
+
+                    <li class="menuresli" style="border-top: double;"><a href="management">Main</a></li>
+                    <li class="menuresli"><a href="gall_mngt">Manage Galleries and Photos</a></li>
+                    <li class="menuresli"><a href="ar_mngt?artp=journal">Manage Journal</a></li>
+                    <li class="menuresli"><a href="ar_mngt?artp=event">Manage Events</a></li>
+                    <li class="menuresli"><a href="archive">Archive</a></li>
+                    <li class="menuresli"><a href="pg_mngt">Manage User and Page Info</a></li>
+                    <li class="menuresli"><a href="logout">Logout</a></li>
+
+                </ul>
+            </div>
+
         </nav>
 
         <header></header>
 
-        <!--if session-->
-
-        <ul>
-            <a href="management"><li class="menu">Main</li></a>
-            <a href="gall_mngt"><li class="menu">Manage Galleries and Photos</li></a>
-            <a href="ar_mngt?artp=journal"><li class="menu">Manage Journal</li></a>
-            <a href="ar_mngt?artp=event"><li class="menu">Manage Events</li></a>
-            <a href="archive"><li class="menu">Archive</li></a>
-            <a href="pg_mngt"><li class="menu">Manage User and Page Info</li></a>
-            <a href="logout"><li class="menu">Logout</li></a>
-        </ul>
-
-        <br>
-        <br>
-
-        <!--endif session-->
-
-        <div class="container">
+        <div name="container" id="container" class="container">
 
             {% block main %}{% endblock %}
 
         </div>
   
         <footer>
-            <p style="padding: 40px;">{% if pageinfo.legal %}
-                <a class="menuf" href="">Legal Disclaimers</a>
-                {% endif %}
-                {% if pageinfo.legal and pageinfo.copyright %} | {% endif %}
-                {% if pageinfo.copyright %}
-                <a class="menuf" href="">Copyright Disclaimers</a>
-                {% endif %}
-            </p>
+            <div class="footercontainer">
+                <div class="footersection" style="text-align: left; width: 100%">
+                    <ul name="ftrnav" id="ftrnav" class="ftrnav">
+                        <li class="footernav"><a href="management">Main</a></li>
+                        <li class="footernav"><a href="gall_mngt">Manage Galleries and Photos</a></li>
+                        <li class="footernav"><a href="ar_mngt?artp=journal">Manage Journal</a></li>
+                        <li class="footernav"><a href="ar_mngt?artp=event">Manage Events</a></li>
+                        <li class="footernav"><a href="archive">Archive</a></li>
+                        <li class="footernav"><a href="pg_mngt">Manage User and Page Info</a></li>
+                        <li class="footernav"><a href="logout">Logout</a></li>
+                    </ul>
+                </div>
+                <div class="footersection" style="display: none; text-align: right; width: 100%">
+                    <p>{{ pageinfo.page_name }} &copy; <span id="year">2023</span><span id="currentyear"></span></p>
+                </div>
+            </div>
         </footer>
 
     </body>
+
+    <script>
+
+        openclose()
+        footeryear()
+
+    </script>
 
 </html>

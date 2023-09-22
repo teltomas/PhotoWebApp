@@ -71,27 +71,35 @@ p {
     text-align: center;
 }
 
+nav {
+    margin: auto;
+    text-align: center;
+    padding: 1rem 0;
+}
+
+
 ul {
     list-style-type: none;
-    display: inline;
     margin: 0;
     padding: 0;
     font-size: 1.5rem;
 }
 
-li {
-    margin: 2rem;
-    display: inline;    
+.nonres {
+    display: block;
 }
 
 .menu {
     color: #727272;
+    margin: 2rem;
+    display: inline;    
 }
   
 .menu:hover {
     color: #3b3b3b;
     text-decoration: underline;
     text-decoration-thickness: 2px;
+    cursor: pointer;
   }
 
 .menuf {
@@ -102,12 +110,55 @@ li {
 .menuf:hover {
     color: #727272;
   }
-  
 
-nav {
-    margin: auto;
+.resp {
+    display: none;
+    position: relative;
+    width: 100%;
+    height: 1rem;
+}
+
+.menubttn {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    width: 2rem;
+    height: 2rem;
+    cursor: pointer;
+    border: none;
+}
+
+.menuresimg {
+    top: 0.5rem;
+    left: 0.5rem;
+    width: 1.5rem;
+}
+
+.menurescontainer {
+    display: none;
+    position: absolute;
+    width: 100%;
     text-align: center;
-    padding: 1rem 0;
+    top: 2rem;
+    margin: auto;
+    z-index: 1;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    opacity: 0.9;
+}
+
+  
+.menuresli {
+    width: 60%;
+    margin: auto;
+    padding:1rem;
+    border-top: solid 1px #727272;
+}
+
+.menuresli:hover {
+    color:#3b3b3b;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
 }
 
 .dropdown {
@@ -141,7 +192,13 @@ nav {
   
   .dropdown:hover .dropdown-content {display: block;}
   
-
+.navmenumngt {
+    width: 80%; 
+    margin: auto; 
+    margin-top: 0.5rem; 
+    padding-top: 0.5rem; 
+    border-top: solid 2px #727272;
+}
 
 header {
     height: 420px;
@@ -161,10 +218,12 @@ header {
 }
 
 .showcase {
+    display: flex;
     margin-inline: auto;
     margin-top: 1rem; 
-    grid-template-columns: 1fr 1fr 1fr;
-
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
 }
 .showcaseimg {
     max-width: 18rem;
@@ -202,14 +261,54 @@ table {
 
 
 footer  {
-    position: relative;
+    position: relative;    
+    width: 100%; 
+    height: fit-content;   
     bottom: 0;
     margin-bottom: 0;
-    max-height: auto;
     text-align: center;
     background-color: #3b3b3b;
     color: #f0f0f0;
 }
+
+.footercontainer {
+    display: flex;
+    flex-direction: row;
+    margin: auto;
+    max-width: 90%;    
+    justify-content: space-between;
+    
+}
+
+.footersection {
+
+    height: fit-content;
+    align-content: center; 
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.ftrnav {
+    margin: 0;
+    padding: 0;
+}
+
+.footernav {
+    display: inline-flex;
+    color: #f0f0f0;
+    text-align: left;
+    margin: 0;
+    margin-right: 0.5rem;
+    padding: 0;
+}
+
+.footernav:hover {
+    color: #adadad;
+    text-decoration: none;
+    text-decoration-thickness: 2px;
+    text-decoration: underline;
+  }
+
 
 .article_container {
     width: 90%;
@@ -471,17 +570,23 @@ input[type=checkbox]:checked:after {
 .delbutton:hover .warning {visibility: visible; opacity: 1;}
 
 .gall_edit_grid {
+    max-width: 70rem;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    align-content: center;
+    align-items: center;
+    margin: auto;
     gap: 2rem;
 }
 
 .gall_edit_container {
     max-height: fit-content;
+    max-width: fit-content;
+    margin: auto;
     margin:0.2rem;
     text-align: center;
-    padding:0.5rem;
+    padding:0.2rem;
     background-color:#e2e2e2;
     border-radius: 5px;
 }
@@ -497,8 +602,6 @@ input[type=checkbox]:checked:after {
 }
 
 .image_wrapper {
-    width: fit-content;
-    height: fit-content;
     position: relative;
 }
 
@@ -588,10 +691,34 @@ input[type=checkbox]:checked:after {
   }
 
 
+@media (hover: none){
+    [class="nonres"] {
+        display: none;
+    } 
+
+    [class="resp"] {
+        display: block;
+    } 
+}
+
 @media only screen and (max-width: 850px) {
     [class="photolink"] {
         padding: 1em;
     }  
+
+    [class="nonres"] {
+        display: none;
+    } 
+
+    [class="resp"] {
+        display: block;
+    } 
+
+    [class="footernav"] {
+        display: block;
+        text-align: center;
+        padding: 0.5rem;
+    }
 }
 
 

@@ -30,13 +30,20 @@
                 <textarea type="text" name="message" id="message" placeholder="Message..." required></textarea>
                 <br/>
                 <input type="text" name="email" id="email" placeholder="Email address" required>
+                <p id="valwarning" style="font-size: 0.7em; white-space: normal; margin: 0.2rem; padding: 0; visibility: hidden;">Not a valid email address.</p>
                 <br/>
-                <input type="submit">
+                <input id="submitbttn" name="submitbttn" type="submit" disabled>
 
             </form>
         
         </div>
 
 </div>
+
+<script>
+
+    emailvalidation()
+    
+</script>
 
 {% endblock %}

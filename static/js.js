@@ -102,3 +102,73 @@ function addImgs() {
     }
 }
 
+function footeryear() {
+    curryear = new Date().getFullYear();
+    if (document.getElementById("year").textContent != curryear)
+        document.getElementById("currentyear").innerHTML = " - " + new Date().getFullYear();
+}
+
+/* email validation function as shown here: */
+/*https://www.simplilearn.com/tutorials/javascript-tutorial/email-validation-in-javascript*/
+
+function emailvalidation () {
+    document.querySelector('email'),addEventListener('keypress', function ValidateEmail() {
+
+        var validRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+
+        input = document.getElementById("email");
+      
+        if (input.value.match(validRegex)) {
+      
+            document.getElementById("valwarning").style.visibility = "hidden";
+            document.getElementById("submitbttn").disabled = false;
+      
+          return true;
+      
+        } else {
+      
+            document.getElementById("valwarning").style.visibility = "visible";
+            document.getElementById("submitbttn").disabled = true;
+      
+          return false;
+      
+        }
+      
+      });
+}
+
+function openclose() {
+
+    let status = document.getElementById("menulist").style.display;
+
+    if (status == "none") {
+
+        document.getElementById("menulist").style.display = "block";
+        document.getElementById("container").style.opacity = "0.2";
+
+    } else {
+
+        document.getElementById("menulist").style.display = "none";
+        document.getElementById("container").style.opacity = "1";
+
+    }
+
+}
+
+function deltoggle() {
+
+    let status = document.getElementById("confirmdel").style.display;
+
+    if (status == "none") {
+
+        document.getElementById("confirmdel").style.display = "block";
+        document.getElementById("cancel").style.display = "block";
+
+    } else {
+
+        document.getElementById("confirmdel").style.display = "none";
+        document.getElementById("cancel").style.display = "none";
+
+    }
+
+}
