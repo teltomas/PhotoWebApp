@@ -133,14 +133,10 @@ Edit Gallery Info - {{ gallery.title }}
             <button class="iconsbtn" onclick="toggleFalse('gallsel');">
                 <img src="static/icons/deselect.png" alt="Deselect All" style="height: 1.2rem;">
                 <span class="tooltiptext" style="font-size: 0.7em; margin-left: 1rem;">Deselect All</span>
-            </button>
-            <button class="iconsbtn" onclick="toggleSwitch('gallsel');">
-                <img src="static/icons/switch.png" alt="Switch Selection" style="border-radius: 3px; height: 1.2rem;">
-                <span class="tooltiptext" style="font-size: 0.7em; margin-left: 0.2rem;">Switch Selection</span>
-            </button>     
+            </button>   
             <button class="iconsbtn" onclick="rmvImgs();" style="margin-left: 1rem;">
                 <img src="static/icons/remove.png" alt="Remove Selected" style="height: 1.2rem;">
-                <span class="tooltiptext" style="font-size: 0.7em; margin-left: -2.2rem;">Remove Selected</span>
+                <span class="tooltiptext" style="font-size: 0.7em; margin-left: -0.6rem;">Remove Selected</span>
             </button>
             <form method="post" action="/imgsrmv" name="gallrmv" id="gallrmv">
                 <input type="hidden" name="gall_id" id="gall_id" value="{{ gallery.id }}">
@@ -200,13 +196,9 @@ Edit Gallery Info - {{ gallery.title }}
             <img src="static/icons/deselect.png" alt="Deselect All" style="height: 1.2rem;">
             <span class="tooltiptext" style="font-size: 0.7em; margin-left: 1rem;">Deselect All</span>
         </button>
-        <button class="iconsbtn" onclick="toggleSwitch('addselect');">
-            <img src="static/icons/switch.png" alt="Switch Selection" style="border-radius: 3px; height: 1.2rem;">
-            <span class="tooltiptext" style="font-size: 0.7em; margin-left: 0.2rem;">Switch Selection</span>
-        </button>
         <button class="iconsbtn" onclick="addImgs();" style="margin-left: 1rem;">
             <img src="static/icons/add.png" alt="Add Selected" style="height: 1.2rem;">
-            <span class="tooltiptext" style="font-size: 0.7em; margin-left: -2.2rem;">Add Selected</span>
+            <span class="tooltiptext" style="font-size: 0.7em; margin-left: -1.2rem;">Add Selected</span>
         </button>
         <form method="post" action="/imgsadd" name="galladd" id="galladd">
             <input type="hidden" name="gall_id" id="gall_id" value="{{ gallery.id }}">

@@ -65,7 +65,7 @@
             <div class="gall_edit_grid">
 
                 {% if images %}
-                <div class="edit_img">
+                
                     {% for img in images %}
                     <div class="gall_edit_container">
                         <div class="image_wrapper">
@@ -91,7 +91,7 @@
                         </p>
                     </div>
                     {% endfor %}
-                </div>
+                
                 {% else %}
                 <h5>No images available</h5>
                 {% endif %}
@@ -108,10 +108,6 @@
             <button class="iconsbtn" onclick="toggleFalse('imgselect');">
                 <img src="static/icons/deselect.png" alt="Deselect All" style="height: 1.2rem;">
                 <span class="tooltiptext" style="font-size: 0.7em; margin-left: 1rem;">Deselect All</span>
-            </button>
-            <button class="iconsbtn" onclick="toggleSwitch('imgselect');">
-                <img src="static/icons/switch.png" alt="Switch Selection" style="border-radius: 3px; height: 1.2rem;">
-                <span class="tooltiptext" style="font-size: 0.7em; margin-left: 0.2rem;">Switch Selection</span>
             </button>
             <button class="iconsbtn" onclick="confdel();" style="margin-left: 1rem;">
                 <img src="static/icons/delete.png" alt="Delete Selected" style="height: 1.2rem;">

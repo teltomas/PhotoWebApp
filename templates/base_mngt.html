@@ -50,7 +50,7 @@
         <p style="font-size: 0.7em;">To get the app access token: Gmail account settings > Security > Two Step Verification > App Passwords > Generate an "Other (Personalized Name)" with a name of your choosing.</p>
         <p style="font-size: 0.7em;">The generated token should be inserted here:</p>
         <form action="base_mngt?action=confemailkey" method="post" id="conf_emailkey" name="conf_emailkey">
-            <input type="password" name="emailkey" id="emailkey" maxlength="50" placeholder="Email Sender Key..." required>
+            <input type="password" name="emailkey" id="emailkey" maxlength="50" placeholder="Email Sender Token..." required>
             <br>
             <input type="submit">
         </form>
@@ -63,11 +63,11 @@
         <p style="font-size: 0.7em;">Passwords are required to have a mix of at leat 8 letters and digits.</p>
         
         <form action="base_mngt?action=passchange" method="post" id="passchange" name="passchange">
-            <input type="password" name="cpass" id="cpass" maxlength="50" placeholder="Current Management Key..." required>
+            <input type="password" name="cpass" id="cpass" maxlength="50" placeholder="Current Management Password..." required>
             <br>
-            <input type="password" name="npass" id="npass" maxlength="50" placeholder="New Management Key..." required>
+            <input type="password" name="npass" id="npass" maxlength="50" placeholder="New Password..." required>
             <br>
-            <input type="password" name="repass" id="repass" maxlength="50" placeholder="Repeat New Management Key..." required>
+            <input type="password" name="repass" id="repass" maxlength="50" placeholder="Repeat New Password..." required>
             <br>
             <input type="submit">
         </form>
