@@ -148,7 +148,7 @@ def contact():
 
         # fetch the info sent by the user #
 
-        # revalidate email address input before sending #
+        # email address input validation before sending #
         # as shown here https://stackabuse.com/python-validate-email-address-with-regular-expressions-regex/ #
 
         regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
@@ -200,7 +200,7 @@ def gallery():
 
         imgs_info.reverse()
 
-    # split the quantity of images in three diferent arrays to display in the page grid #
+    # split the quantity of images in three diferent arrays to distribute in the page grid #
         imgs_col1 = []
         imgs_col2 = []
         imgs_col3 = []
@@ -325,23 +325,31 @@ def ar_mngmt():
 
     # management of the existing articles - both events and journal entries #
 
+    # fetch from the address arguments the kind of article to manage: journal or event #
+
     if request.args.get('artp', ''):
         ar_type = request.args.get('artp', '')
+    else:
+        ar_type: None
 
     if request.method == "GET":
- 
+        
+        # get from the db the articles from the type requested #
         conn = get_db_connection()
         entries = conn.execute('SELECT id, title, date, content FROM articles WHERE type = ? AND archived = 0 ORDER BY date DESC;', (ar_type,)).fetchall()
         conn.close()
 
         flash_message = None
 
+        # message to display in caso of non existing entries of type requested # 
         if not entries:
             flash_message = "No entries to display."
 
-        for row in entries:
-            if len(row['content'])>150:
-                row['content'] = row['content'][:150]+"..."
+        # limit the length of the text to display in the for each article #
+        if entries:
+            for row in entries:
+                if len(row['content'])>150:
+                    row['content'] = row['content'][:150]+"..."
 
         return render_template("ar_mngt.html",
                             pageinfo = page_info, 
@@ -355,14 +363,29 @@ def ar_mngmt():
     
     if request.method == "POST":
 
+        if not request.form.get("id") or not request.args.get('action', ''):
+
+            return render_template("ar_mngt.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            entries = entries,
+                            ar_type = ar_type,
+                            flash_message = "Error - Undefined request"), 400
+
+        # fetch the Id from the article to edit #
         ar_id = request.form.get("id")
 
+        # fetch the action to do with the article selected #
         action = int(request.args.get('action', ''))
 
+        # get article info from DB #
         conn = get_db_connection()
         article = conn.execute('SELECT * FROM articles WHERE id = ?;', (ar_id,)).fetchone()
         conn.close()
 
+        # define article type #
         ar_type = article['type']
 
         if action == 1: # edit article entry #
@@ -378,6 +401,7 @@ def ar_mngmt():
         
         if action == 2: # archive article entry #
 
+            # change article archive status in DB # 
             conn = get_db_connection()
             cur = conn.cursor()
             cur.execute('UPDATE articles SET archived = ? WHERE id = ?;', (True, ar_id,))
@@ -386,10 +410,12 @@ def ar_mngmt():
         
         if action == 3: # save edited article entry #
 
-            # get and confirm title contents #
-            if request.form.get("title"):
+            # get and confirm title and content input #
+            if request.form.get("title") and request.form.get("content"):
                 title = request.form.get("title")
+                content = request.form.get("content")
             else:
+                # Return error nessage in case of no input #
                 return render_template("edit_entry.html",
                             pageinfo = page_info, 
                             journal = journal_exist, 
@@ -397,29 +423,15 @@ def ar_mngmt():
                             galls = gall_nav,
                             article = article,
                             ar_type = ar_type,
-                            flash_message = "Title required!")
+                            flash_message = "Title required and content text required"), 400
 
-            # get and confirm main contents #
-            if request.form.get("content"):
-                content = request.form.get("content")
-            else:
-                return render_template("edit_entry.html",
-                                pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                article = article,
-                                ar_type = ar_type,
-                                flash_message = "Content text required!"), 400
-
-            # get and confirm link contents - set null if empty #
+            # get link input - set null if empty #
             if request.form.get("link"):
                 link = request.form.get("link")
             else:
                 link = None
 
             # update info in the DB #
-
             conn = get_db_connection()
             cur = conn.cursor()
             cur.execute('UPDATE articles SET title = ?, content = ?, link = ? WHERE id = ?;', (title, content, link, ar_id,))
@@ -430,14 +442,16 @@ def ar_mngmt():
 
             if request.files['img']:
                 
+                # get image from input #
                 img = request.files['img']
                 
                 filename = img.filename
 
                 if filename != '':
 
+                    # confirmation of valid image file, return error otherwise #
                     file_ext = os.path.splitext(filename)[1]
-                    if file_ext not in app.config['UPLOAD_EXTENSIONS'] or \
+                    if file_ext not in ['.jpg', '.jpeg'] or \
                         file_ext != validate_image(img.stream):
                         
                         return render_template("ar_mngt.html",
@@ -448,24 +462,36 @@ def ar_mngmt():
                                 ar_type = ar_type,
                                 flash_message = "New article successfully posted to Journal BUT invalid image discarded.")
 
+                # set info to save img in files and DB #
                 fname = "article" + str(ar_id) + ".jpg"
                 dbname= "article" + str(ar_id)
 
+                # get the path to save, and save img file #
                 path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
 
                 img.save(path) 
 
+                # resize the image #
                 image_resize(path, 800) 
 
                 # update article in db with image name #
-
                 conn = get_db_connection()
                 cur = conn.cursor()
                 cur.execute('UPDATE articles SET image = ? WHERE id = ?;', (dbname, ar_id,))
                 conn.commit()
                 conn.close()
 
-        return redirect("ar_mngt?artp=" + ar_type)
+            return redirect("ar_mngt?artp=" + ar_type)
+        
+        # return error in case of undefined action #
+        return render_template("ar_mngt.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            entries = entries,
+                            ar_type = ar_type,
+                            flash_message = "Error - Undefined request"), 400
     
 
 @app.route("/ar_new", methods=["GET", "POST"])
@@ -474,11 +500,14 @@ def ar_new():
 
     # creation of new articles #
 
+    # redirect in case of invalid argument or no type input #
     if not request.args.get('artp', '') and not request.form.get("ar_type"):
-        return redirect("management")
+        return redirect("management"), 400
 
+    # get the article type to create #
     ar_type = request.args.get('artp', '')
 
+    # render new article page #
     if request.method == "GET":
 
         return render_template("ar_new.html",
@@ -488,22 +517,23 @@ def ar_new():
                             ar_type = ar_type,
                             galls = gall_nav)
     
+    
     if request.method == "POST":
 
-        ar_type = request.form.get("ar_type")
-
-        if request.form.get("title"):
-            title = request.form.get("title")
+        # article type validation and return error in case of undefined #
+        if request.form.get("ar_type"):
+            ar_type = request.form.get("ar_type")
         else:
-            return render_template("ar_new.html",
+            return render_template("mngmt_main.html",
                             pageinfo = page_info, 
                             journal = journal_exist, 
                             events = events_exist,
                             galls = gall_nav,
-                            ar_type = ar_type,
-                            flash_message = "Title required!")
-        
-        if request.form.get("content"):
+                            flash_message = "Error - Undefined request"), 400
+
+        # article title and content text validation and return error if undefined #
+        if request.form.get("title") and request.form.get("content"):
+            title = request.form.get("title")
             content = request.form.get("content")
         else:
             return render_template("ar_new.html",
@@ -512,15 +542,15 @@ def ar_new():
                             events = events_exist,
                             galls = gall_nav,
                             ar_type = ar_type,
-                            flash_message = "Content text required!")
+                            flash_message = "Title and content text required!"), 400
         
+        # detect link input and store it, set null in case of no input #
         if request.form.get("link"):
             link = request.form.get("link")
         else:
             link = None
 
-        # add event info to the DB and get the article ID #
-
+        # add article to the DB and get the article ID #
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute('INSERT INTO articles (type, title, content, archived, link) VALUES (?, ?, ?, ?, ?);', (ar_type, title, content, False, link,))
@@ -528,6 +558,7 @@ def ar_new():
         ar_id = conn.execute('SELECT id FROM articles ORDER BY id DESC;').fetchone()
         conn.close()
 
+        # store article id to be used in case of image upload #
         ar_id = ar_id['id']
 
 
@@ -535,10 +566,12 @@ def ar_new():
 
         if request.files['img']:
             
+            # get image from input #
             img = request.files['img']
             
             filename = img.filename
 
+            # validate image file and return error message in case of failed upload #
             if filename != '':
 
                 file_ext = os.path.splitext(filename)[1]
@@ -553,6 +586,7 @@ def ar_new():
                             ar_type = ar_type,
                             flash_message = "New article successfully posted to " + ar_type + " BUT invalid image discarded.")
 
+            # define image filename and path to be stored and recorded in db #
             fname = "article" + str(ar_id) + ".jpg"
             dbname= "article" + str(ar_id)
 
@@ -560,10 +594,10 @@ def ar_new():
 
             img.save(path) 
 
+            # resize image #
             image_resize(path, 800) 
 
             # update article in db with image name #
-
             conn = get_db_connection()
             cur = conn.cursor()
             cur.execute('UPDATE articles SET image = ? WHERE id = ?;', (dbname, ar_id,))
@@ -583,6 +617,7 @@ def archive():
 
     if request.method == "GET":
 
+        # render archived articles page with message in case of non existing archived articles #
         if not archived_ar:
 
             return render_template("/archive.html",
@@ -592,6 +627,7 @@ def archive():
                             galls = gall_nav,
                             flash_message = "Archive is empty.")
         
+        # resize content text to be posted and render page #
         for row in archived_ar:
             if len(row['content'])>150:
                 row['content'] = row['content'][:150]+"..."
@@ -603,18 +639,40 @@ def archive():
                             galls = gall_nav,
                             entries = archived_ar)
     
+
     if request.method == "POST":
 
+        # return error message in case of undefined request #
+        if not request.args.get('action', '') or not request.form.get("id"):
+            return render_template("/archive.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            entries = archived_ar,
+                            flash_message = "Error - Undefined request."), 400
+
+        # store requested info #
         action = request.args.get('action', '')
         ar_id = request.form.get("id")
 
+
         if action == "repub":
 
+            # update article archived status in case of republish request #
             conn = get_db_connection()
             cur = conn.cursor()
             cur.execute('UPDATE articles SET archived = ? WHERE id = ?;', (False, ar_id,))
             conn.commit()
             conn.close()
+
+            return render_template("/archive.html",
+                pageinfo = page_info, 
+                journal = journal_exist, 
+                events = events_exist,
+                galls = gall_nav,
+                entries = archived_ar,
+                flash_message = "Article republished.")
 
 
         if action == "del": # delete article entry #
@@ -636,6 +694,23 @@ def archive():
             conn.commit()
             conn.close()
 
+            return render_template("/archive.html",
+                pageinfo = page_info, 
+                journal = journal_exist, 
+                events = events_exist,
+                galls = gall_nav,
+                entries = archived_ar,
+                flash_message = "Article deleted.")
+        
+        # return error in case of undefined action #
+        return render_template("/archive.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            entries = archived_ar,
+                            flash_message = "Error - Undefined request."), 400
+
     return redirect("/archive")
 
 @app.route("/pg_mngt", methods=["GET"])
@@ -654,7 +729,7 @@ def pg_mngt():
 @login_required
 def profile_mngt():
 
-    # update info variables to fill forms #
+    # update info data to fill forms #
 
     conn = get_db_connection()
     page_info = conn.execute('SELECT * FROM page_info WHERE id = 1;').fetchone() # for the general page info #
@@ -672,9 +747,19 @@ def profile_mngt():
     
     if request.method == "POST":
 
-        # get which action was requested and proceed with change #
+        # get which action was requested and proceed with change, return error in case of no argument #        
+        if not request.args.get('action', ''):
+            return render_template("/profile_mngt.html",
+                                        pageinfo = page_info, 
+                                        journal = journal_exist, 
+                                        events = events_exist,
+                                        galls = gall_nav,
+                                        flash_message = "Error - request undefined"
+                                        ), 400
+        
         action = request.args.get('action', '')
 
+        # in case of name update request, get new input and update db. Return error in case of empty input # 
         if action == "name":
 
             if not request.form.get("pg_name"):
@@ -685,7 +770,7 @@ def profile_mngt():
                                         events = events_exist,
                                         galls = gall_nav,
                                         flash_message = "Page name input required"
-                                        )
+                                        ), 400
             
             else:
                 pg_name = request.form.get("pg_name")           
@@ -698,6 +783,7 @@ def profile_mngt():
 
             return redirect("/profile_mngt")
 
+        # update description #
         if action == "description":
 
             conn = get_db_connection()
@@ -708,6 +794,7 @@ def profile_mngt():
 
             return redirect("/profile_mngt")
 
+        # update about section info #
         if action == "aboutcontent":
 
             conn = get_db_connection()
@@ -718,6 +805,8 @@ def profile_mngt():
 
             return redirect("/profile_mngt")
 
+        # update about section photo - same upload process as above #
+        # about img should always be stored as 0.jpg # 
         if action == "aboutphoto":
 
             if request.files['abimg']:
@@ -757,12 +846,16 @@ def profile_mngt():
 
             return redirect("/profile_mngt") 
         
+        # delete about section photo from files and update db on case of photo removal request #
         if action == "delabtph":
 
+            # check if exist #
             if os.path.exists(cwd + app.config['UPLOAD_PATH'] + "0.jpg"):
 
+                # remove if exist #
                 os.remove(cwd + app.config['UPLOAD_PATH'] + "0.jpg")
 
+                # update db #
                 conn = get_db_connection()
                 cur = conn.cursor()
                 cur.execute('UPDATE page_info SET about_img = ? WHERE id = 1;', (False,))
@@ -771,6 +864,7 @@ def profile_mngt():
 
             return redirect("/profile_mngt")
 
+        # profile image upload - same process as above, but in this case also .png files accepted in case of logo upload #
         if action == "profphoto":
 
             if request.files['profimg']:
@@ -888,7 +982,14 @@ def profile_mngt():
 
             return redirect("/profile_mngt")
         
-        return redirect("/profile_mngt")
+        # in case of undefined action request, return error #
+        return render_template("/profile_mngt.html",
+                                        pageinfo = page_info, 
+                                        journal = journal_exist, 
+                                        events = events_exist,
+                                        galls = gall_nav,
+                                        flash_message = "Error - request undefined"
+                                        ), 400
     
     return redirect("/profile_mngt")
 
