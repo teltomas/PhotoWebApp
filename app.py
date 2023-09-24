@@ -9,7 +9,7 @@ from flask_mail import Mail, Message
 
 
 from front import date, capital, dblink
-from back import validate_image, get_db_connection, image_resize, createthumb, login_required
+from back import validate_image, get_db_connection, image_resize, createthumb, login_required, img_upload
 
 # configure app
 app = Flask(__name__) 
@@ -34,11 +34,17 @@ journal_exist = False
 events_exist = False
 
 conn = get_db_connection()
-page_info = conn.execute('SELECT page_name, small_descr, about, inst_link, face_link, yt_link, tweet_link, px_link, bhnc_link, tumblr_link, flickr_link, about_img, prof_pic, legal, copyright, page_email FROM page_info WHERE id = 1;').fetchone() # for the general page info #
-journals = conn.execute('SELECT * FROM articles WHERE type = "journal" AND archived = 0;').fetchone() # determine if there are journals in db to activate the journal nav item #
-events = conn.execute('SELECT * FROM articles WHERE type = "event" AND archived = 0;').fetchone() # determine if there are events in db to activate the events nav item #
+page_info = conn.execute('SELECT page_name, small_descr, about, inst_link, face_link, \
+                         yt_link, tweet_link, px_link, bhnc_link, tumblr_link, flickr_link, \
+                         about_img, prof_pic, legal, copyright, page_email, meta \
+                         FROM page_info WHERE id = 1;').fetchone() # for the general page info #
+journals = conn.execute('SELECT * FROM articles WHERE type = "journal" \
+                        AND archived = 0;').fetchone() # determine if there are journals in db to activate the journal nav item #
+events = conn.execute('SELECT * FROM articles WHERE type = "event" \
+                      AND archived = 0;').fetchone() # determine if there are events in db to activate the events nav item #
 gall_nav = conn.execute('SELECT id, title FROM galleries WHERE id != 1;').fetchall() # get how many galleries exist in db to fill the galleries nav itens #
-page_conf = conn.execute('SELECT email, page_email, page_email_hash FROM page_info WHERE id = 1;').fetchone() # for the general page info #
+page_conf = conn.execute('SELECT email, page_email, page_email_hash \
+                         FROM page_info WHERE id = 1;').fetchone() # for the general page info #
 
 conn.close()
 
@@ -87,6 +93,7 @@ def main():
                             galls = gall_nav,
                             imgs = sc_img)
 
+
 @app.route("/article")
 def articles():
 
@@ -97,7 +104,9 @@ def articles():
 
     # get from db the article intros to display in page #
     conn = get_db_connection()
-    articles = conn.execute('SELECT * FROM articles WHERE type = ? AND archived = 0 ORDER BY date DESC;', (ar_type,)).fetchall()
+    articles = conn.execute('SELECT * FROM articles WHERE type = ? \
+                            AND archived = 0 \
+                            ORDER BY date DESC;', (ar_type,)).fetchall()
     conn.close()
 
     # display message if there are no articles #
@@ -118,6 +127,7 @@ def articles():
                            events = events_exist, 
                            galls = gall_nav,
                            articles = articles)
+
 
 @app.route("/about")
 def about():
@@ -192,7 +202,9 @@ def gallery():
 
     conn = get_db_connection()
     gall_info = conn.execute('SELECT * FROM galleries WHERE id = ?', (gall_id,)).fetchone()
-    imgs_info = conn.execute('SELECT * FROM gall_img_index JOIN images ON gall_img_index.img_id = images.id WHERE gall_id = ?', (gall_id,)).fetchall()
+    imgs_info = conn.execute('SELECT * FROM gall_img_index JOIN images \
+                             ON gall_img_index.img_id = images.id \
+                             WHERE gall_id = ?', (gall_id,)).fetchall()
     conn.close()
 
 
@@ -225,6 +237,30 @@ def gallery():
                            imgs_col1 = imgs_col1,
                            imgs_col2 = imgs_col2,
                            imgs_col3 = imgs_col3)
+
+
+@app.route("/<inftype>")
+def disclaimer(inftype):
+
+    # to display legal or copyright infos, if requested. Return main page if undefined path or no content to display #
+
+    if not page_info['legal'] or not page_info['copyright']:
+
+        return redirect("/")
+
+    if inftype == "legal" or inftype == "copyright":
+
+        return render_template("/disclaimer.html", 
+                        pageinfo = page_info, 
+                        journal = journal_exist, 
+                        events = events_exist,
+                        galls = gall_nav,
+                        inftype = inftype,
+                        )
+    
+    else:
+
+        return redirect("/")
 
 
 
@@ -271,7 +307,9 @@ def login():
         # Query database for username
        
         conn = get_db_connection()
-        user = conn.execute('SELECT id, username, hash FROM page_info WHERE username = ?', (request.form.get("username"),)).fetchone()
+        user = conn.execute('SELECT id, username, hash \
+                            FROM page_info \
+                            WHERE username = ?', (request.form.get("username"),)).fetchone()
         conn.close()
 
         # Ensure username exists and password is correct
@@ -296,6 +334,7 @@ def login():
                                journal = journal_exist, 
                                events = events_exist, 
                                galls = gall_nav,)
+
 
 @app.route("/logout")
 def logout():
@@ -329,24 +368,38 @@ def ar_mngmt():
 
     if request.args.get('artp', ''):
         ar_type = request.args.get('artp', '')
+                
+        # get from the db the articles from the type requested #
+        conn = get_db_connection()
+        entries = conn.execute('SELECT id, title, date, content \
+                               FROM articles \
+                               WHERE type = ? AND archived = 0 \
+                               ORDER BY date DESC;', (ar_type,)).fetchall()
+        conn.close()
     else:
         ar_type: None
+        entries: None
 
     if request.method == "GET":
         
-        # get from the db the articles from the type requested #
-        conn = get_db_connection()
-        entries = conn.execute('SELECT id, title, date, content FROM articles WHERE type = ? AND archived = 0 ORDER BY date DESC;', (ar_type,)).fetchall()
-        conn.close()
-
-        flash_message = None
+        if not ar_type:
+            return render_template("ar_mngt.html",
+                                pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                entries = entries,
+                                ar_type = ar_type,
+                                flash_message = "Error - Undefined article type"), 400
 
         # message to display in caso of non existing entries of type requested # 
         if not entries:
             flash_message = "No entries to display."
 
-        # limit the length of the text to display in the for each article #
-        if entries:
+        else:
+            
+            flash_message = None
+            # limit the length of the text to display in the for each article #
             for row in entries:
                 if len(row['content'])>150:
                     row['content'] = row['content'][:150]+"..."
@@ -407,13 +460,15 @@ def ar_mngmt():
             cur.execute('UPDATE articles SET archived = ? WHERE id = ?;', (True, ar_id,))
             conn.commit()
             conn.close()
+
+            return redirect("/ar_mngt?artp="+ar_type)
         
         if action == 3: # save edited article entry #
 
             # get and confirm title and content input #
             if request.form.get("title") and request.form.get("content"):
-                title = request.form.get("title")
-                content = request.form.get("content")
+                article['title'] = request.form.get("title")
+                article['content'] = request.form.get("content")
             else:
                 # Return error nessage in case of no input #
                 return render_template("edit_entry.html",
@@ -427,62 +482,92 @@ def ar_mngmt():
 
             # get link input - set null if empty #
             if request.form.get("link"):
-                link = request.form.get("link")
+                article['link'] = request.form.get("link")
             else:
-                link = None
+                article['link'] = None
 
             # update info in the DB #
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE articles SET title = ?, content = ?, link = ? WHERE id = ?;', (title, content, link, ar_id,))
+            cur.execute('UPDATE articles \
+                        SET title = ?, content = ?, link = ? \
+                        WHERE id = ?;', (article['title'], article['content'], article['link'], ar_id,))
             conn.commit()
             conn.close()
 
             # img file upload handling implemented as shown here https://blog.miguelgrinberg.com/post/handling-file-uploads-with-flask #
 
             if request.files['img']:
-                
-                # get image from input #
-                img = request.files['img']
-                
-                filename = img.filename
 
-                if filename != '':
+                # set info to save img in files and DB #
+                article['image'] = "article" + str(ar_id)
 
-                    # confirmation of valid image file, return error otherwise #
-                    file_ext = os.path.splitext(filename)[1]
-                    if file_ext not in ['.jpg', '.jpeg'] or \
-                        file_ext != validate_image(img.stream):
-                        
-                        return render_template("ar_mngt.html",
+                # get the path to save, and save img file #
+                path = os.path.join((cwd+app.config['UPLOAD_PATH']), article['image']+".jpg")
+                
+                # get image file from input and process it, loaded == True if success, False if not #
+                                
+                if not img_upload(request.files['img'], path, ['.jpg', 'jpeg'], 800):  
+
+                    return render_template("edit_entry.html",
                                 pageinfo = page_info, 
                                 journal = journal_exist, 
                                 events = events_exist,
                                 galls = gall_nav,
+                                article = article,
                                 ar_type = ar_type,
-                                flash_message = "New article successfully posted to Journal BUT invalid image discarded.")
+                                flash_message = "Article successfully updated BUT invalid image discarded.")
 
-                # set info to save img in files and DB #
-                fname = "article" + str(ar_id) + ".jpg"
-                dbname= "article" + str(ar_id)
+                else:
 
-                # get the path to save, and save img file #
-                path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
+                    # update article in db with image name #
+                    conn = get_db_connection()
+                    cur = conn.cursor()
+                    cur.execute('UPDATE articles SET image = ? WHERE id = ?;', (article['image'], ar_id,))
+                    conn.commit()
+                    conn.close()
 
-                img.save(path) 
+            return render_template("edit_entry.html",
+                                pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                article = article,
+                                ar_type = ar_type,
+                                flash_message = "Article successfully updated BUT invalid image discarded.")
 
-                # resize the image #
-                image_resize(path, 800) 
-
-                # update article in db with image name #
-                conn = get_db_connection()
-                cur = conn.cursor()
-                cur.execute('UPDATE articles SET image = ? WHERE id = ?;', (dbname, ar_id,))
-                conn.commit()
-                conn.close()
-
-            return redirect("ar_mngt?artp=" + ar_type)
         
+        if action == 4: # remove photo from article #
+
+            # get image name from the db to proceed with file deletion #
+
+            conn = get_db_connection()
+            image = conn.execute('SELECT * FROM articles WHERE id = ?;', (ar_id,)).fetchone()
+            conn.close()
+
+            if image['image']:
+                
+                os.remove(cwd+"/static/images/" + str(image['image']) + ".jpg") 
+
+            # update article in db with Null image #
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('UPDATE articles SET image = ? WHERE id = ?;', (None, ar_id,))
+            conn.commit()
+            conn.close()
+
+            # update the image info from the article content so it does not try to load # 
+            article['image'] = None
+
+            return render_template("edit_entry.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            article = article,
+                            ar_type = ar_type
+                            )
+                    
         # return error in case of undefined action #
         return render_template("ar_mngt.html",
                             pageinfo = page_info, 
@@ -553,49 +638,36 @@ def ar_new():
         # add article to the DB and get the article ID #
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('INSERT INTO articles (type, title, content, archived, link) VALUES (?, ?, ?, ?, ?);', (ar_type, title, content, False, link,))
+        cur.execute('INSERT INTO articles (type, title, content, archived, link) \
+                    VALUES (?, ?, ?, ?, ?);', (ar_type, title, content, False, link,))
         conn.commit()
-        ar_id = conn.execute('SELECT id FROM articles ORDER BY id DESC;').fetchone()
+        ar_id = conn.execute('SELECT id \
+                             FROM articles \
+                             ORDER BY id DESC;').fetchone()
         conn.close()
 
         # store article id to be used in case of image upload #
         ar_id = ar_id['id']
 
-
         # img file upload handling as shown here https://blog.miguelgrinberg.com/post/handling-file-uploads-with-flask #
 
         if request.files['img']:
             
-            # get image from input #
-            img = request.files['img']
-            
-            filename = img.filename
-
-            # validate image file and return error message in case of failed upload #
-            if filename != '':
-
-                file_ext = os.path.splitext(filename)[1]
-                if file_ext not in ['.jpg', '.jpeg'] or \
-                    file_ext != validate_image(img.stream):
-                    
-                    return render_template("ar_mngt.html",
-                            pageinfo = page_info, 
-                            journal = journal_exist, 
-                            events = events_exist,
-                            galls = gall_nav,
-                            ar_type = ar_type,
-                            flash_message = "New article successfully posted to " + ar_type + " BUT invalid image discarded.")
-
-            # define image filename and path to be stored and recorded in db #
-            fname = "article" + str(ar_id) + ".jpg"
+            # create image name and path #
             dbname= "article" + str(ar_id)
 
-            path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
+            path = os.path.join((cwd+app.config['UPLOAD_PATH']), dbname+".jpg")
 
-            img.save(path) 
-
-            # resize image #
-            image_resize(path, 800) 
+            # get image from input and process it #
+            if not img_upload(request.files['img'], path, ['.jpg', 'jpeg'], 800): 
+                    
+                return render_template("ar_mngt.html",
+                        pageinfo = page_info, 
+                        journal = journal_exist, 
+                        events = events_exist,
+                        galls = gall_nav,
+                        ar_type = ar_type,
+                        flash_message = "New article successfully posted to " + ar_type + " BUT invalid image discarded.")
 
             # update article in db with image name #
             conn = get_db_connection()
@@ -612,7 +684,8 @@ def archive():
 
     # get from db the archived articles #
     conn = get_db_connection()
-    archived_ar = conn.execute('SELECT * FROM articles WHERE archived = 1 ORDER BY id DESC;', ).fetchall()
+    archived_ar = conn.execute('SELECT * FROM articles \
+                               WHERE archived = 1 ORDER BY id DESC;', ).fetchall()
     conn.close()
 
     if request.method == "GET":
@@ -679,7 +752,8 @@ def archive():
 
             # get the info from the db to check if article has an image #
             conn = get_db_connection()
-            image = conn.execute('SELECT image FROM articles WHERE id = ?;', (ar_id,) ).fetchone()
+            image = conn.execute('SELECT image FROM articles \
+                                 WHERE id = ?;', (ar_id,) ).fetchone()
             conn.close()
 
             # delete article image if exists #
@@ -713,6 +787,7 @@ def archive():
 
     return redirect("/archive")
 
+
 @app.route("/pg_mngt", methods=["GET"])
 @login_required
 def pg_mngt():
@@ -725,14 +800,15 @@ def pg_mngt():
                             galls = gall_nav,
                             )
 
+
 @app.route("/profile_mngt", methods=["GET", "POST"])
 @login_required
 def profile_mngt():
 
     # update info data to fill forms #
-
     conn = get_db_connection()
-    page_info = conn.execute('SELECT * FROM page_info WHERE id = 1;').fetchone() # for the general page info #
+    page_info = conn.execute('SELECT * FROM page_info \
+                             WHERE id = 1;').fetchone() # for the general page info #
     conn.close()
 
     if request.method == "GET":
@@ -773,11 +849,11 @@ def profile_mngt():
                                         ), 400
             
             else:
-                pg_name = request.form.get("pg_name")           
-
+                
                 conn = get_db_connection()
                 cur = conn.cursor()
-                cur.execute('UPDATE page_info SET page_name = ? WHERE id = 1;', (pg_name,))
+                cur.execute('UPDATE page_info SET page_name = ? \
+                            WHERE id = 1;', (request.form.get("pg_name"),))
                 conn.commit()
                 conn.close() 
 
@@ -788,7 +864,8 @@ def profile_mngt():
 
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE page_info SET small_descr = ? WHERE id = 1;', (request.form.get("pg_descr"),))
+            cur.execute('UPDATE page_info SET small_descr = ? \
+                        WHERE id = 1;', (request.form.get("pg_descr"),))
             conn.commit()
             conn.close()
 
@@ -799,7 +876,8 @@ def profile_mngt():
 
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE page_info SET about = ? WHERE id = 1;', (request.form.get("abttxt"),))
+            cur.execute('UPDATE page_info SET about = ? \
+                        WHERE id = 1;', (request.form.get("abttxt"),))
             conn.commit()
             conn.close()
 
@@ -810,37 +888,27 @@ def profile_mngt():
         if action == "aboutphoto":
 
             if request.files['abimg']:
-            
-                img = request.files['abimg']
-                
-                filename = img.filename 
 
-                if filename != '':
+                # if file uploaded: set path to save file and process it. About section image is always 0.jpg#
+                path = os.path.join((cwd+app.config['UPLOAD_PATH']), "0.jpg")
 
-                    file_ext = os.path.splitext(filename)[1]
-                    if file_ext not in ['.jpg', '.jpeg'] or \
-                        file_ext != validate_image(img.stream):
-                        
-                        return render_template("profile_mngt.html",
+                if not img_upload(request.files['abimg'], path, ['.jpg', 'jpeg'], 1000): 
+
+                    return render_template("profile_mngt.html",
                                 pageinfo = page_info, 
                                 journal = journal_exist, 
                                 events = events_exist,
                                 galls = gall_nav,
                                 flash_message = "Failed to upload image.")
-
-                fname = "0.jpg"
-
-                path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
-
-                img.save(path)
-
-                image_resize(path, 1000) 
+            
+                # In case DB had the "about image" deactivated, activate it # 
 
                 if not page_info['about_img']:
 
                     conn = get_db_connection()
                     cur = conn.cursor()
-                    cur.execute('UPDATE page_info SET about_img = ? WHERE id = 1;', (True,))
+                    cur.execute('UPDATE page_info SET about_img = ? \
+                                WHERE id = 1;', (True,))
                     conn.commit()
                     conn.close() 
 
@@ -855,45 +923,38 @@ def profile_mngt():
                 # remove if exist #
                 os.remove(cwd + app.config['UPLOAD_PATH'] + "0.jpg")
 
-                # update db #
+                # update db - deactivate "about image" #
                 conn = get_db_connection()
                 cur = conn.cursor()
-                cur.execute('UPDATE page_info SET about_img = ? WHERE id = 1;', (False,))
+                cur.execute('UPDATE page_info SET about_img = ? \
+                            WHERE id = 1;', (False,))
                 conn.commit()
                 conn.close()
 
             return redirect("/profile_mngt")
 
         # profile image upload - same process as above, but in this case also .png files accepted in case of logo upload #
+        # profile image saved as "1" + file extension #
         if action == "profphoto":
 
             if request.files['profimg']:
+
+                file_ext = os.path.splitext(request.files['profimg'].filename)[1]
+
+                fname = "1" + file_ext
+
+                path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
+
+                if not img_upload(request.files['profimg'], path, ['.jpg', 'jpeg', '.png'], 600): 
             
-                img = request.files['profimg']
-                
-                filename = img.filename 
-
-                if filename != '':
-
-                    file_ext = os.path.splitext(filename)[1]
-                    if file_ext not in ['.jpg', '.jpeg', '.png'] or \
-                        file_ext != validate_image(img.stream):
-                        
-                        return render_template("profile_mngt.html",
+                    return render_template("profile_mngt.html",
                                 pageinfo = page_info, 
                                 journal = journal_exist, 
                                 events = events_exist,
                                 galls = gall_nav,
                                 flash_message = "Failed to upload image."), 400
-
-                fname = "1" + os.path.splitext(filename)[1]
-
-                path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
-
-                img.save(path)
-
-                image_resize(path, 600) 
-
+                
+                # db needs to be updated regarding the possibility of different file extensions #
                 conn = get_db_connection()
                 cur = conn.cursor()
                 cur.execute('UPDATE page_info SET prof_pic = ? WHERE id = 1;', (fname,))
@@ -902,11 +963,17 @@ def profile_mngt():
 
             return redirect("/profile_mngt") 
 
+        # section of update social networks links #
+        # # direct aproach to fill db with link in case of input, and Null in case of no input # 
         if action == "insta":
 
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE page_info SET inst_link = ? WHERE id = 1;', (request.form.get("instalink"),))
+            if request.form.get("instalink"):
+                cur.execute('UPDATE page_info SET inst_link = ? \
+                            WHERE id = 1;', (request.form.get("instalink"),))
+            else:
+                cur.execute('UPDATE page_info SET inst_link = ? WHERE id = 1;', (None,))
             conn.commit()
             conn.close()
 
@@ -916,7 +983,11 @@ def profile_mngt():
                 
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE page_info SET face_link = ? WHERE id = 1;', (request.form.get("facelink"),))
+            if request.form.get("facelink"):
+                cur.execute('UPDATE page_info SET face_link = ? \
+                            WHERE id = 1;', (request.form.get("facelink"),))
+            else:
+                cur.execute('UPDATE page_info SET face_link = ? WHERE id = 1;', (None,))
             conn.commit()
             conn.close()
 
@@ -926,7 +997,11 @@ def profile_mngt():
 
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE page_info SET yt_link = ? WHERE id = 1;', (request.form.get("ytblink"),))
+            if request.form.get("ytblink"):
+                cur.execute('UPDATE page_info SET yt_link = ? \
+                            WHERE id = 1;', (request.form.get("ytblink"),))
+            else:
+                cur.execute('UPDATE page_info SET yt_link = ? WHERE id = 1;', (None,))
             conn.commit()
             conn.close()
 
@@ -936,7 +1011,11 @@ def profile_mngt():
 
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE page_info SET tweet_link = ? WHERE id = 1;', (request.form.get("tweetlink"),))
+            if request.form.get("tweetlink"):
+                cur.execute('UPDATE page_info SET tweet_link = ? \
+                            WHERE id = 1;', (request.form.get("tweetlink"),))
+            else:
+                cur.execute('UPDATE page_info SET tweet_link = ? WHERE id = 1;', (None,))
             conn.commit()
             conn.close()
 
@@ -946,7 +1025,11 @@ def profile_mngt():
 
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE page_info SET px_link = ? WHERE id = 1;', (request.form.get("500pxlink"),))
+            if request.form.get("500pxlink"):
+                cur.execute('UPDATE page_info SET px_link = ? \
+                            WHERE id = 1;', (request.form.get("500pxlink"),))
+            else:
+                cur.execute('UPDATE page_info SET px_link = ? WHERE id = 1;', (None,))
             conn.commit()
             conn.close()
 
@@ -956,7 +1039,11 @@ def profile_mngt():
    
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE page_info SET bhnc_link = ? WHERE id = 1;', (request.form.get("bhnclink"),))
+            if request.form.get("bhnclink"):
+                cur.execute('UPDATE page_info SET bhnc_link = ? \
+                            WHERE id = 1;', (request.form.get("bhnclink"),))
+            else:
+                cur.execute('UPDATE page_info SET bhnc_link = ? WHERE id = 1;', (None,))
             conn.commit()
             conn.close()
 
@@ -966,7 +1053,11 @@ def profile_mngt():
 
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE page_info SET flickr_link = ? WHERE id = 1;', (request.form.get("flickrlink"),))
+            if request.form.get("flickrlink"):
+                cur.execute('UPDATE page_info SET flickr_link = ? \
+                            WHERE id = 1;', (request.form.get("flickrlink"),))
+            else:
+                cur.execute('UPDATE page_info SET flickr_link = ? WHERE id = 1;', (None,))
             conn.commit()
             conn.close()
 
@@ -976,7 +1067,11 @@ def profile_mngt():
 
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE page_info SET tumblr_link = ? WHERE id = 1;', (request.form.get("tumblrlink"),))
+            if request.form.get("tumblrlink"):
+                cur.execute('UPDATE page_info SET tumblr_link = ? \
+                            WHERE id = 1;', (request.form.get("tumblrlink"),))
+            else:
+                cur.execute('UPDATE page_info SET tumblr_link = ? WHERE id = 1;', (None,))
             conn.commit()
             conn.close()
 
@@ -1000,7 +1095,8 @@ def base_mngt():
     # update info variables to fill forms #
 
     conn = get_db_connection()
-    page_info = conn.execute('SELECT * FROM page_info WHERE id = 1;').fetchone() # for the general page info #
+    page_info = conn.execute('SELECT * FROM page_info \
+                             WHERE id = 1;').fetchone() # for the general page info #
     conn.close()
 
     if request.method == "GET":
@@ -1015,33 +1111,60 @@ def base_mngt():
     
     if request.method == "POST":
 
+        # update the page info considering the users request as "action" #
+
         action = request.args.get('action', '')
 
         if action == "pgemail":
 
-            conn = get_db_connection()
-            cur = conn.cursor()
-            cur.execute('UPDATE page_info SET email = ? WHERE id = 1;', (request.form.get("email"),))
-            conn.commit()
-            conn.close()
+            # set the users email address, to where the page messages will be sent - required #
+            if request.form.get("email"):
+                conn = get_db_connection()
+                cur = conn.cursor()
+                cur.execute('UPDATE page_info SET email = ? \
+                            WHERE id = 1;', (request.form.get("email"),))
+                conn.commit()
+                conn.close()
 
-            return redirect("/base_mngt")
+                return redirect("/base_mngt")
+
+            else: 
+
+                return render_template("/base_mngt.html",
+                                    pageinfo = page_info, 
+                                    journal = journal_exist, 
+                                    events = events_exist,
+                                    galls = gall_nav,
+                                    flash_message = "User email required."
+                                    )
         
+        # update the page configuration email - from where the page messages will be sent #
         if action == "confemail":
 
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE page_info SET page_email = ? WHERE id = 1;', (request.form.get("cfemail"),))
+            if request.form.get("cfemail"):
+                cur.execute('UPDATE page_info SET page_email = ? \
+                            WHERE id = 1;', (request.form.get("cfemail"),))
+            else:
+                cur.execute('UPDATE page_info SET page_email = ? \
+                            WHERE id = 1;', (None,))
             conn.commit()
             conn.close()
 
             return redirect("/base_mngt")
         
+        # update the page configuration email access token #
         if action == "confemailkey":
 
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE page_info SET page_email_hash = ? WHERE id = 1;', (request.form.get("emailkey"),))
+            if request.form.get("emailkey"):
+                cur.execute('UPDATE page_info SET page_email_hash = ? \
+                            WHERE id = 1;', (request.form.get("emailkey"),))
+            else:
+                cur.execute('UPDATE page_info SET page_email_hash = ? \
+                            WHERE id = 1;', (None,))
             conn.commit()
             conn.close()
 
@@ -1053,8 +1176,23 @@ def base_mngt():
                                 flash_message = "Email token updated"
                                 )
         
+        # change the management section access password #
         if action == "passchange":
 
+            # require input of all fields #
+
+            if not request.form.get("cpass") or not request.form.get("npass") \
+                or not request.form.get("repass"):
+
+                return render_template("/base_mngt.html",
+                                pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                flash_message = "All password fields required"
+                                )
+
+            # check if current password matches #
             if not check_password_hash(page_info['hash'], request.form.get("cpass")):
 
                 return render_template("/base_mngt.html",
@@ -1065,6 +1203,7 @@ def base_mngt():
                                 flash_message = "Wrong password"
                                 )
             
+            # require matching new passwords #
             if request.form.get("npass") != request.form.get("repass"):
 
                 return render_template("/base_mngt.html",
@@ -1075,7 +1214,7 @@ def base_mngt():
                                 flash_message = "New password fields don't match"
                                 )
             
-            # check if password meets the requirements - 8 letters or numbers with at least 1 number #
+            # check if password meets the requirements - 8 chars and numbers, allow special chars #
             nkey = request.form.get("npass")
             count_numb = 0
             for i in nkey:
@@ -1092,11 +1231,13 @@ def base_mngt():
                                 flash_message = "New password does not meet the requirements"
                                 )
             
+            # if password meets requirements, proceed wish hash generator and store it #
             else:
 
                 conn = get_db_connection()
                 cur = conn.cursor()
-                cur.execute('UPDATE page_info SET hash = ? WHERE id = 1;', (generate_password_hash(nkey),))
+                cur.execute('UPDATE page_info SET hash = ? \
+                            WHERE id = 1;', (generate_password_hash(nkey),))
                 conn.commit()
                 conn.close()
 
@@ -1108,25 +1249,56 @@ def base_mngt():
                                 flash_message = "Password updated"
                                 )
         
+        # update legal info #
         if action == "legal":
 
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE page_info SET legal = ? WHERE id = 1;', (request.form.get("pg_legal"),))
+            if request.form.get("pg_legal"):
+                cur.execute('UPDATE page_info SET legal = ? WHERE id = 1;', (request.form.get("pg_legal"),))
+            else: 
+                cur.execute('UPDATE page_info SET legal = ? WHERE id = 1;', (None,))    
             conn.commit()
             conn.close()
 
             return redirect("/base_mngt")
         
+        # update copyright info #
         if action == "copy":
 
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE page_info SET copyright = ? WHERE id = 1;', (request.form.get("pg_copy"),))
+            if request.form.get("pg_copy"):
+                cur.execute('UPDATE page_info SET copyright = ? WHERE id = 1;', (request.form.get("pg_copy"),))
+            else:
+                cur.execute('UPDATE page_info SET copyright = ? WHERE id = 1;', (None,))
             conn.commit()
             conn.close()
 
             return redirect("/base_mngt")
+        
+        # update meta tags data #
+        if action == "metatags":
+
+            conn = get_db_connection()
+            cur = conn.cursor()
+            if request.form.get("meta"):
+                cur.execute('UPDATE page_info SET meta = ? WHERE id = 1;', (request.form.get("meta"),))
+            else:
+                cur.execute('UPDATE page_info SET meta = ? WHERE id = 1;', (None,))
+            conn.commit()
+            conn.close()
+
+            return redirect("/base_mngt")
+        
+        # return error if undefined action #
+        return render_template("/base_mngt.html",
+                                pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                flash_message = "Error - bad request"
+                                ), 400
 
     return redirect("/base_mngt")
 
@@ -1134,6 +1306,7 @@ def base_mngt():
 @login_required
 def aspect_mngt():
 
+    # render the aspect management page #
     if request.method == "GET":
 
         return render_template("/aspect_mngt.html",
@@ -1144,64 +1317,62 @@ def aspect_mngt():
     
     if request.method == "POST":
 
+        # fecth action requested #
         action = request.args.get('action', '')
 
+        # upload and update banner / hero image #
         if action == "banner":
 
             if request.files['heroimg']:
+
+                path = os.path.join((cwd+app.config['UPLOAD_PATH']), "2.jpg")
+
+                if not img_upload(request.files['heroimg'], path, ['.jpg', 'jpeg'], None): 
             
-                img = request.files['heroimg']
-                
-                filename = img.filename 
-
-                if filename != '':
-
-                    file_ext = os.path.splitext(filename)[1]
-                    if file_ext not in ['.jpg', '.jpeg'] or \
-                        file_ext != validate_image(img.stream):
-                        
-                        return render_template("aspect_mngt.html",
+                    return render_template("aspect_mngt.html",
                                 pageinfo = page_info, 
                                 journal = journal_exist, 
                                 events = events_exist,
                                 galls = gall_nav,
-                                flash_message = "Failed to upload image.")
+                                flash_message = "Failed to upload image - invalid file."), 400
 
-                fname = "2.jpg"
-
-                path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
-
-                img.save(path)
-
-            return render_template("/aspect_mngt.html",
+            else:
+                # return error message in case of submit with no file #
+                return render_template("/aspect_mngt.html",
                                 pageinfo = page_info, 
                                     journal = journal_exist, 
                                     events = events_exist,
-                                    galls = gall_nav)
+                                    galls = gall_nav,
+                                    flash_messsage = "No file selected"), 400
+
+            return redirect("/aspect_mngt")
     
+        # upload and update image favicon #
         if action == "ico":
 
             if request.files['ico']:
             
+                # no image_upload function call because of no compatibility with ico in image stream validation #
                 img = request.files['ico']
                 
+                # get filname to check extension #
                 filename = img.filename 
 
                 if filename != '':
-
+                    
+                    # if filename got, check if extension is valid #
                     file_ext = os.path.splitext(filename)[1]
                     if file_ext not in ['.ico']:
                         
+                        # return error if invalid file #
                         return render_template("aspect_mngt.html",
                                 pageinfo = page_info, 
                                 journal = journal_exist, 
                                 events = events_exist,
                                 galls = gall_nav,
-                                flash_message = "Failed to upload image.")
+                                flash_message = "Failed to upload icon - invalid file."), 400
 
-                fname = "favicon.ico"
-
-                path = os.path.join((cwd+"static/icons/"), fname)
+                path = os.path.join((cwd+"static/icons/"), "favicon.ico")
 
                 img.save(path)
 
@@ -1215,12 +1386,16 @@ def aspect_mngt():
                                 pageinfo = page_info, 
                                     journal = journal_exist, 
                                     events = events_exist,
-                                    galls = gall_nav)
+                                    galls = gall_nav,
+                                    flash_message = "Error - undefined request"), 400
     
 @app.route("/gall_mngt", methods=["GET", "POST"])
 @login_required
 def gall_mngt():
 
+    # gallery management page #
+
+    # get galleries and images info, and their match, from DB #
     conn = get_db_connection()
     galleries = conn.execute('SELECT * FROM galleries ORDER BY id DESC;').fetchall()
     img_gall = conn.execute('SELECT * FROM gall_img_index;').fetchall()
@@ -1229,9 +1404,11 @@ def gall_mngt():
 
     flash_message = None
 
+    # determine message to return in case of no gallery data #
     if not galleries:
         flash_message = "There are no galleries to display."
 
+    # limit galleries info shown text # 
     for row in galleries:
         if len(row['description']) > 100:
             row['description'] = row['description'][:100] + "..."

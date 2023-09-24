@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    {% if inftype == "legal" %}
+        Legal Disclaimer
+    {% elif inftype == "copyright" %}
+        Copyright Disclaimer
+    {% endif %}
+{% endblock %}
+
+{% block main %}
+<div class="article_container">
+    <br>
+    <h4 style="text-decoration: none;">
+        {% if inftype == "legal" %}
+            Legal Disclaimer
+        {% elif inftype == "copyright" %}
+            Copyright Disclaimer
+        {% endif %}
+    </h4>    
+    <div class="article_content" style="margin: 0; border-bottom: none; text-align: justify;">                
+        <p>
+            {% if inftype == "legal" %}
+                {{ pageinfo.legal }}
+            {% elif inftype == "copyright" %}
+                {{ pageinfo.copyright }}
+            {% endif %}
+        </p> 
+        <br>           
+    </div>
+</div>
+{% endblock %}

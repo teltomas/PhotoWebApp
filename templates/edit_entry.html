@@ -41,11 +41,17 @@
 
     </form>
 
+    {% if article.image %}
+    <form action="/ar_mngt?action=4" method="post" id="image_rmv" name="image_rmv">
+        <input type="hidden" id="id" name="id" value="{{ article.id }}">
+        <button class="mngbutton" type="submit">Remove Image</button>
+    </form>
+    {% endif %}
+
 </div>
 
 <ul>
     <a href="/ar_mngt?artp={{ ar_type }}"><li class="limngt">Return</li></a>
 </ul>
-
 
 {% endblock %}

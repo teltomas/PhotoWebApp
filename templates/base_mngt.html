@@ -77,6 +77,7 @@
     <div class="artmngcontainer">
 
         <h1>Page Legal Info:</h1>
+        <p style="font-size: 0.7em;">Place to update the legal disclaimers of the page. This will be shown in a menu at the bottom of the page, if filled.</p>
         <form action="base_mngt?action=legal" method="post" id="legal" name="legal">
             <textarea type="text" name="pg_legal" id="pg_legal" placeholder="Page legal text...">{% if pageinfo.legal %}{{ pageinfo.legal }}{% endif %}</textarea>
             <input type="submit">
@@ -87,12 +88,26 @@
     <div class="artmngcontainer">
 
         <h1>Page Copyright Info:</h1>
+        <p style="font-size: 0.7em;">Place to update the Copyright disclaimers of the page. This will be shown in a menu at the bottom of the page if filled.</p>
         <form action="base_mngt?action=copy" method="post" id="copy" name="copy">
             <textarea type="text" name="pg_copy" id="pg_copy" placeholder="Page copyright text...">{% if pageinfo.copyright %}{{ pageinfo.copyright }}{% endif %}</textarea>
             <input type="submit">
         </form>
     
-    </div>    
+    </div>
+    
+    <div class="artmngcontainer">
+        
+        <h1>Change the META info of the page:</h1>
+        <p style="font-size: 0.7em;">Place to store the META Tags of the page.</p> 
+        <p style="font-size: 0.7em;">This info is not shown anywhere in the page, but it is stored on a special place to be used by search engines and helps the page to be easilly found when someone searches for it</p>
+        <p style="font-size: 0.7em;">Example of input (always with comma ate the end): photography, images, travel, street, landscapes, vistas, cityscapes, urban,...</p>
+        <form action="base_mngt?action=metatags" method="post" id="metainfo" name="metainfo">
+            <textarea type="text" name="meta" id="meta" placeholder="META tags..." required>{% if pageinfo.meta %}{{ pageinfo.meta }}{% endif %}</textarea>
+            <input type="submit">
+        </form>
+    
+    </div>
 
 </div>
 

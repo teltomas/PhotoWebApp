@@ -54,6 +54,7 @@ def image_resize(path, fixed_height):
     
     return
 
+
 def createthumb(path, thumbpath, size):
     
     image = Image.open(path)
@@ -62,6 +63,7 @@ def createthumb(path, thumbpath, size):
 
     return
 
+# login required as implementation on CS50Finance #
 def login_required(f):
     """
     Decorate routes to require login.
@@ -74,3 +76,33 @@ def login_required(f):
             return redirect("/login")
         return f(*args, **kwargs)
     return decorated_function
+
+
+# image upload and save function #
+# image: file uploaded; path: path to save the file including file name; #
+# extensions: allowed file extentions in this upload; size: height of image size to order its resize #
+# Return: false if upload failed, true if success #
+# https://blog.miguelgrinberg.com/post/handling-file-uploads-with-flask #
+def img_upload(image, path, extentions, size):
+
+    filename = image.filename
+
+    # validate image file and return error message in case of failed upload #
+    if filename != '':
+
+        file_ext = os.path.splitext(filename)[1]
+        if file_ext not in extentions or \
+            file_ext != validate_image(image.stream):
+            
+            return False
+    
+    # save file #
+    image.save(path)
+
+    # resize image if size determined #
+    if size != None:
+
+        image_resize(path, size)
+
+    # return if success #
+    return True

@@ -150,7 +150,7 @@
 
         <footer>
             <div class="footercontainer">
-                <div class="footersection" style="text-align: left; width: 100%">
+                <div class="footersection" style="text-align: left; width: 100%; margin-top: 0.5rem;">
                     <ul name="ftrnav" id="ftrnav" class="ftrnav">
                         <li class="footernav"><a href="#">To Top</a></li>                                               
                         <li class="footernav"><a href="/main">Home</a></li>                         
@@ -169,21 +169,21 @@
                 </div>
                 <div class="footersection" style="width: 100%">
                     {% if pageinfo.legal %}
-                    <p style="display: inline;">                        
-                        <a class="menuf" href="">Legal Disclaimers</a>
+                    <p style="display: inline; white-space: normal;">                        
+                        <a class="menuf" href="/legal">Legal Disclaimers</a>
                     </p>
                     {% endif %}
                     
-                    {% if pageinfo.legal and pageinfo.copyright %}<p style="display: inline;"> | </p>{% endif %}
+                    {% if pageinfo.legal and pageinfo.copyright %}<p style="display: inline; white-space: normal;"> | </p>{% endif %}
                     
                     {% if pageinfo.copyright %}
-                    <p style="display: inline;">
-                        <a class="menuf" href="">Copyright Disclaimers</a>
+                    <p style="display: inline; white-space: normal;">
+                        <a class="menuf" href="/copyright">Copyright Disclaimers</a>
                     </p>
                     {% endif %}              
                 </div>
                 <div class="footersection" style="text-align: right; width: 100%">
-                    <p>{{ pageinfo.page_name }} &copy; <span id="year">2023</span><span id="currentyear"></span></p>
+                    <p style="display: inline; white-space: normal;">{{ pageinfo.page_name }} &copy; <span id="year">2023</span><span id="currentyear"></span></p>
                 </div>
             </div>
         </footer>
