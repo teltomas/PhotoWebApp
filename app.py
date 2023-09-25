@@ -1408,9 +1408,9 @@ def gall_mngt():
     if not galleries:
         flash_message = "There are no galleries to display."
 
-    # limit galleries info shown text # 
+    # limit galleries info shown text if exist # 
     for row in galleries:
-        if len(row['description']) > 100:
+        if row['description'] and len(row['description']) > 100:
             row['description'] = row['description'][:100] + "..."
 
     if request.method == "GET":
@@ -1431,6 +1431,8 @@ def gall_mngt():
 @login_required
 def gall_new():
 
+    # to create a new gallery #
+
     if request.method == "GET":
 
         return render_template("/gall_new.html",
@@ -1442,6 +1444,7 @@ def gall_new():
     
     if request.method == "POST":
 
+        # guarantee a title input #
         if not request.form.get("title"):
             return render_template("/gall_new.html",
                                pageinfo = page_info, 
@@ -1449,58 +1452,73 @@ def gall_new():
                                 events = events_exist,
                                 galls = gall_nav,
                                 flash_message = "Title is required."
-                                )
+                                ), 400
         
+        # set the gallery description to bd input, set Null if it has no content #
+        if request.form.get("galldescr"):
+            galldescr = request.form.get("galldescr")
+        else:
+            galldescr = None
+        
+        # insert gallery info into DB #
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('INSERT INTO galleries (title, description) VALUES (?, ?);', (request.form.get("title"), request.form.get("galldescr"),))
+        cur.execute('INSERT INTO galleries (title, description) VALUES (?, ?);', (request.form.get("title"), galldescr,))
         conn.commit()
         conn.close()
 
-
-        return redirect("/gall_mngt")
-        
+        return redirect("/gall_mngt")        
     
     return redirect("/gall_mngt")
+
 
 @app.route("/gall_edit", methods=["GET", "POST"])
 @login_required
 def gall_edit():
 
-    gall_id = request.args.get('id', '')
+    # Gallery info change #
 
-    if request.method == "GET":
+    # get the id of the gallery requested, return error if no id #
+    if request.args.get('id', ''):
+        gall_id = request.args.get('id', '')
+    else:
+        return redirect("/gall_mngt"), 400
+    
+    # in case of get method get gallery info, its photos and also the photos that are not in the gallery, to render the edit page #
+    conn = get_db_connection()
+    gallery = conn.execute('SELECT * FROM galleries WHERE id = ? ORDER BY id DESC;', (gall_id,)).fetchone()
+    images = conn.execute('SELECT gall_id, img_id, title FROM gall_img_index JOIN images ON gall_img_index.img_id = images.id WHERE gall_id = ?;', (gall_id,)).fetchall()
+    freeimgs = conn.execute('SELECT id FROM images WHERE id > 2 EXCEPT SELECT img_id FROM gall_img_index WHERE gall_id = ? ORDER BY id DESC;', (gall_id,)).fetchall()
+    conn.close()
 
+    images.reverse() # to render the photos in the gallery edit page the same order and way they are presented in the gallery presentantion page #
+
+    # split the quantity of images in three diferent arrays to display in the page grid #
+    imgs_col1 = []
+    imgs_col2 = []
+    imgs_col3 = []
+
+    i = 0
+    while i < len(images):
+        imgs_col1.append(images[i])
+        if i+1 < len(images): 
+            imgs_col2.append(images[i+1])
+        if i+2 < len(images): 
+            imgs_col3.append(images[i+2])
+        i = i + 3
+
+    for img in freeimgs:
+
+        # add image title to the photos array #
         conn = get_db_connection()
-        gallery = conn.execute('SELECT * FROM galleries WHERE id = ? ORDER BY id DESC;', (gall_id,)).fetchone()
-        images = conn.execute('SELECT gall_id, img_id, title FROM gall_img_index JOIN images ON gall_img_index.img_id = images.id WHERE gall_id = ?;', (gall_id,)).fetchall()
-        freeimgs = conn.execute('SELECT id FROM images WHERE id > 2 EXCEPT SELECT img_id FROM gall_img_index WHERE gall_id = ? ORDER BY id DESC;', (gall_id,)).fetchall()
+        title = conn.execute('SELECT title FROM images WHERE id = ?;', (img['id'],)).fetchone()
         conn.close()
 
-        images.reverse()
+        img['title'] = title['title']
 
-        # split the quantity of images in three diferent arrays to display in the page grid #
-        imgs_col1 = []
-        imgs_col2 = []
-        imgs_col3 = []
-    
-        i = 0
-        while i < len(images):
-            imgs_col1.append(images[i])
-            if i+1 < len(images): 
-                imgs_col2.append(images[i+1])
-            if i+2 < len(images): 
-                imgs_col3.append(images[i+2])
-            i = i + 3
-
-        for img in freeimgs:
-
-            conn = get_db_connection()
-            title = conn.execute('SELECT title FROM images WHERE id = ?;', (img['id'],)).fetchone()
-            conn.close()
-
-            img['title'] = title['title']
+    if request.method == "GET":        
         
+        # render the page #
         return render_template("/gall_edit.html",
                                 pageinfo = page_info, 
                                 journal = journal_exist, 
@@ -1515,32 +1533,80 @@ def gall_edit():
                                 )
     
     if request.method == "POST":
-            
-        action = request.args.get('action', '')
-
-        if action == "edit":
-
-            if not request.form.get("title"):
-                return render_template("/gall_new.html",
+        
+        # in case of post method, get the requested action. Return error in case of no argument #
+        if request.args.get('action', ''):    
+            action = request.args.get('action', '')
+        else:
+            return render_template("/gall_edit.html",
                                 pageinfo = page_info, 
-                                    journal = journal_exist, 
-                                    events = events_exist,
-                                    galls = gall_nav,
-                                    flash_message = "Title is required."
-                                    )
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                gallery = gallery,
+                                images = images,
+                                imgs_col1 = imgs_col1,
+                                imgs_col2 = imgs_col2,
+                                imgs_col3 = imgs_col3,
+                                freeimgs = freeimgs,
+                                flash_message = "Error - Undefined request"
+                                ), 400
+
+        if action == "edit": # if the change is in the gallery title or description #
+
+            # gallery title is a must - return error otherwise #
+            if not request.form.get("title"):
+                return render_template("/gall_edit.html",
+                                pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                gallery = gallery,
+                                images = images,
+                                imgs_col1 = imgs_col1,
+                                imgs_col2 = imgs_col2,
+                                imgs_col3 = imgs_col3,
+                                freeimgs = freeimgs,
+                                flash_message = "Title is required"
+                                ), 400
             
+            # get description input info, set Null in no input #
+            if request.form.get("galldescr"):
+                galldescr = request.form.get("galldescr")
+            else:
+                galldescr = None
+
+            # Update db and reload edit page #
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE galleries SET title = ?, description = ? WHERE id = ?;', (request.form.get("title"), request.form.get("galldescr"), gall_id,))
+            cur.execute('UPDATE galleries SET title = ?, description = ? WHERE id = ?;', (request.form.get("title"), galldescr, gall_id,))
             conn.commit()
             conn.close()
 
             return redirect("/gall_edit?id="+gall_id)
         
-        if action == "rmv":
 
-            img_id = request.args.get('imgid', '')
+        if action == "rmv": # remove image from the gallery #
 
+            # fetch the id of the image requested in the action, return error if none #
+            if request.args.get('imgid',''):
+                img_id = request.args.get('imgid', '')
+            else:
+                return render_template("/gall_edit.html",
+                                pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                gallery = gallery,
+                                images = images,
+                                imgs_col1 = imgs_col1,
+                                imgs_col2 = imgs_col2,
+                                imgs_col3 = imgs_col3,
+                                freeimgs = freeimgs,
+                                flash_message = "Error - Image Id undefined to proceed with request."
+                                ), 400
+
+            # remove from the photo to gallery index table the record where the image is attached to the gallery #
             conn = get_db_connection()
             cur = conn.cursor()
             cur.execute('DELETE FROM gall_img_index WHERE gall_id = ? AND img_id = ?;', (gall_id, img_id,))
@@ -1551,8 +1617,25 @@ def gall_edit():
         
         if action == "add":
 
-            img_id = request.args.get('imgid', '')
+            # fetch the id of the image requested in the action, return error if none #
+            if request.args.get('imgid',''):
+                img_id = request.args.get('imgid', '')
+            else:
+                return render_template("/gall_edit.html",
+                                pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                gallery = gallery,
+                                images = images,
+                                imgs_col1 = imgs_col1,
+                                imgs_col2 = imgs_col2,
+                                imgs_col3 = imgs_col3,
+                                freeimgs = freeimgs,
+                                flash_message = "Error - Image Id undefined to proceed with request."
+                                ), 400
 
+            # add to the image to gallery index table the image to gallery match #
             conn = get_db_connection()
             cur = conn.cursor()
             cur.execute('INSERT INTO gall_img_index (gall_id, img_id) VALUES (?, ?);', (gall_id, img_id,))
@@ -1560,6 +1643,21 @@ def gall_edit():
             conn.close()
 
             return redirect("/gall_edit?id="+gall_id)  
+        
+        # return error message in case of undefined action request #
+        return render_template("/gall_edit.html",
+                                pageinfo = page_info, 
+                                journal = journal_exist, 
+                                events = events_exist,
+                                galls = gall_nav,
+                                gallery = gallery,
+                                images = images,
+                                imgs_col1 = imgs_col1,
+                                imgs_col2 = imgs_col2,
+                                imgs_col3 = imgs_col3,
+                                freeimgs = freeimgs,
+                                flash_message = "Error - Undefined request."
+                                ), 400
         
     return redirect("/gall_mngt")  
 
@@ -1570,35 +1668,51 @@ def gall_del():
 
     ## delete gallery entry ##
 
-    gall_id = request.args.get('id', '')    # get the id of the gallery to remove
-
     if request.method == "POST":
-       
+        
+        # get the id of the gallery to delete, return error if no id #
+        if request.args.get('id', ''):
+            gall_id = request.args.get('id', '')
+        else:
+            return redirect("/gall_mngt"), 400
+        
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('DELETE FROM gall_img_index WHERE gall_id = ?;', (gall_id,)) # remove the gallery data from the gallery and photos index table
-        cur.execute('DELETE FROM galleries WHERE id = ?;', (gall_id,)) # remove the gallery data from the gallery table
+        cur.execute('DELETE FROM gall_img_index WHERE gall_id = ?;', (gall_id,)) # remove all listings of the gallery from the gallery and photos index table #
+        cur.execute('DELETE FROM galleries WHERE id = ?;', (gall_id,)) # remove the gallery data from the gallery table #
         conn.commit()
         conn.close()
 
-        return redirect("/gall_mngt")   # return to the galls and photos management page      
+        return redirect("/gall_mngt")   # return to the galls and photos management page #
     
     return redirect("/gall_mngt")  
+
 
 @app.route("/img_edit", methods=["GET", "POST"])
 @login_required
 def img_edit():
 
+    ## image info edit page ##
+
+    # fetch id from image to edit, retunr error if none #
     if request.args.get('imgid', ''):
         img_id = request.args.get('imgid', '')
+    else:
+        return redirect("/gall_mngt"), 400
 
+    # fetch from the DB the image data to fill the image edit page #
     conn = get_db_connection()
-    img_info = conn.execute('SELECT * FROM images WHERE id =?;', (img_id,)).fetchone()
-    img_galls = conn.execute('SELECT gall_id, title FROM gall_img_index JOIN galleries ON gall_img_index.gall_id = galleries.id WHERE img_id = ?;', (img_id,)).fetchall()
+    img_info = conn.execute('SELECT * FROM images WHERE id =?;', (img_id,)).fetchone() # image data #
+    img_galls = conn.execute('SELECT gall_id, title \
+                             FROM gall_img_index \
+                             JOIN galleries \
+                             ON gall_img_index.gall_id = galleries.id \
+                             WHERE img_id = ?;', (img_id,)).fetchall() # list of the galleries where the image is present #
     conn.close()
 
     if request.method == "GET":        
 
+        # render image edit page #
         return render_template("/img_edit.html",
                                     pageinfo = page_info, 
                                     journal = journal_exist, 
@@ -1626,13 +1740,15 @@ def img_del():
 
     ## delete image entry ##
 
+    # fetch id of image to remove, return error if undefined #
     if not request.form.get("img_id"):
-        return redirect("/gall_mngt")
+        return redirect("/gall_mngt"), 400
 
-    img_id = request.form.get("img_id")    # get the id of the image to remove
+    img_id = request.form.get("img_id")
 
     if request.method == "POST":
        
+        # remove the image info from all the DB tables #
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute('DELETE FROM gall_img_index WHERE img_id = ?;', (img_id,)) # remove the image data from the gallery and photos index table
@@ -1640,6 +1756,7 @@ def img_del():
         conn.commit()
         conn.close()
 
+        # delete the image files if found, both from the main folder as with the thumbnails folder #
         if os.path.exists(cwd + app.config['UPLOAD_PATH'] + img_id + ".jpg"):
 
                 os.remove(cwd + app.config['UPLOAD_PATH'] + img_id + ".jpg")
@@ -1660,16 +1777,19 @@ def multi_img_del():
 
     if request.form.get("imgsarray"):
 
-        ids = request.form.get("imgsarray").split(",") # get image ids and split them in an array
+        # imgs Id are delivered in a string of ids seperated by comma, split to get the ids from the string and store them in the array #
+        ids = request.form.get("imgsarray").split(",") # get image ids and split them in an array #
 
         conn = get_db_connection()
         cur = conn.cursor()
 
+        # proceed with removal for each image id in the array #
         for id in ids:  
 
-            cur.execute('DELETE FROM gall_img_index WHERE img_id = ?;', (id,)) # remove the image data from the gallery and photos index table
-            cur.execute('DELETE FROM images WHERE id = ?;', (id,)) # remove the image data from the images table
+            cur.execute('DELETE FROM gall_img_index WHERE img_id = ?;', (id,)) # remove the image data from the gallery and photos index table #
+            cur.execute('DELETE FROM images WHERE id = ?;', (id,)) # remove the image data from the images table #
 
+            # delete the image files if found, both from the main folder as with the thumbnails folder #
             if os.path.exists(cwd + app.config['UPLOAD_PATH'] + id + ".jpg"):
 
                 os.remove(cwd + app.config['UPLOAD_PATH'] + id + ".jpg")
@@ -1680,6 +1800,9 @@ def multi_img_del():
 
         conn.commit()
         conn.close()
+
+    else:
+        return redirect("/gall_mngt"), 400
     
     return redirect("/gall_mngt")
 
@@ -1687,6 +1810,9 @@ def multi_img_del():
 @login_required
 def photos_upload():
 
+    ## upload photo ##
+
+    # render upload page on GET request #
     if request.method == "GET":
 
         return render_template("/photos_upload.html",
@@ -1696,70 +1822,88 @@ def photos_upload():
                                     galls = gall_nav,
                                     )
     
+
     if request.method == "POST":
 
-        img = request.files['file']
+        # if file detected, proceed with upload and validation #
+        # no standard image_upload function used because the DB image id is necessary to save file path #
+        # and the DB update is only made after the image file validation #
+        if request.files['file']:
 
-        filename = img.filename 
+            img = request.files['file']
 
-        if filename != '':
+            # image file validation #
+            filename = img.filename 
 
-            file_ext = os.path.splitext(filename)[1]
-            if file_ext not in ['.jpg', '.jpeg'] or \
-                file_ext != validate_image(img.stream):
+            if filename != '':
+
+                file_ext = os.path.splitext(filename)[1]
+                if file_ext not in ['.jpg', '.jpeg'] or \
+                    file_ext != validate_image(img.stream):
+                    
+                    return "Invalid image", 400
                 
-                return "Invalid image", 400
+                
+            # if valid insert image into DB and get its id to be saved in files #
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('INSERT INTO images (title) VALUES (?);', (("Untitled"),)) # insert image info in images db table #
+            img_index = conn.execute('SELECT id FROM images ORDER BY id DESC;').fetchone()
+            conn.commit()
+            conn.close()
             
-            
-        # insert image into DB and get its id to be saved in files #
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute('INSERT INTO images (title) VALUES (?);', (("Untitled"),)) # insert image info in images db table 
-        img_index = conn.execute('SELECT id FROM images ORDER BY id DESC;').fetchone()
-        conn.commit()
-        conn.close()
+            # create file paths and store file #
+            fname = str(img_index['id'])+".jpg"
+
+            path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
+
+            thumbpath = os.path.join((cwd+app.config['UPLOAD_PATH']+"thumbs"), fname)
+
+            img.save(path) 
+
+            # resize the image file and create its thumbnail #
+            image_resize(path, 1200) 
+
+            createthumb(path, thumbpath, 600)
+
+            return '', 204
         
-        fname = str(img_index['id'])+".jpg"
-
-        path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
-
-        thumbpath = os.path.join((cwd+app.config['UPLOAD_PATH']+"thumbs"), fname)
-
-        img.save(path) 
-
-        image_resize(path, 1200) 
-
-        createthumb(path, thumbpath, 600)
-
-        return '', 204
+        else:
+            return redirect("/gall_mngt"), 400
     
 
 @app.errorhandler(413)
 def too_large(e):
+
+    # error handler for file bigger than 10MB upload attempt #
     return "File is too large", 413
+
 
 @app.route("/imgsrmv", methods=["POST"])
 @login_required
 def imgsrmv():    
 
-    if not request.form.get("gall_id"):
-        return redirect ("/gall_mngt")
+    ## multi imgs gallery removal ##
+
+    # return error if no Id's #
+    if not request.form.get("gall_id") or not request.form.get("imgrmvid"):
+        return redirect ("/gall_mngt"), 400
 
     gall_id = request.form.get("gall_id")
 
-    imgsIds = request.form.get("imgrmvid").split(",")
+    # imgs Id are delivered in a string of ids seperated by comma, split to get the ids from the string and store them in the array #
+    imgsIds = request.form.get("imgrmvid").split(",") 
     
-    if imgsIds:
+    # update image to gallery index table removing all images from this Id table #
+    conn = get_db_connection()
+    cur = conn.cursor()
 
-        conn = get_db_connection()
-        cur = conn.cursor()
+    for id in imgsIds:  
 
-        for id in imgsIds:  
-
-            cur.execute('DELETE FROM gall_img_index WHERE gall_id = ? AND img_id = ?;', (gall_id, id,)) # remove the image registry from gallery in the image to gall index table 
-            
-        conn.commit()
-        conn.close() 
+        cur.execute('DELETE FROM gall_img_index WHERE gall_id = ? AND img_id = ?;', (gall_id, id,)) # remove the image registry from gallery in the image to gall index table 
+        
+    conn.commit()
+    conn.close() 
 
     return redirect("/gall_edit?id="+gall_id)  
 
@@ -1767,23 +1911,24 @@ def imgsrmv():
 @login_required
 def imgsadd():    
 
-    if not request.form.get("gall_id"):
+    ## add multi images to gallery ##
+    ## same process as the remove multi images, but in this case data is added to the DB table, instead of removed ##
+
+    if not request.form.get("gall_id") or not request.form.get("imgrmvid"):
         return redirect ("/gall_mngt")
 
     gall_id = request.form.get("gall_id")
 
     imgsIds = request.form.get("imgaddid").split(",")
     
-    if imgsIds:
+    conn = get_db_connection()
+    cur = conn.cursor()
 
-        conn = get_db_connection()
-        cur = conn.cursor()
+    for id in imgsIds:  
 
-        for id in imgsIds:  
-
-            cur.execute('INSERT INTO gall_img_index (gall_id, img_id) VALUES (?, ?);', (gall_id, id,)) # add image to gallery registry into the image to gall index table 
-            
-        conn.commit()
-        conn.close() 
+        cur.execute('INSERT INTO gall_img_index (gall_id, img_id) VALUES (?, ?);', (gall_id, id,)) # add image to gallery registry into the image to gall index table 
+        
+    conn.commit()
+    conn.close() 
 
     return redirect("/gall_edit?id="+gall_id)  
