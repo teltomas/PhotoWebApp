@@ -40,7 +40,7 @@
         <h1>Page Sender Email:</h1>
         <p style="font-size: 0.7em;">This would be an email account address used only by this page to send the emails to you. This should be a gmail account like "example-noreply@gmail.com" or it wont work.</p>
         <form action="base_mngt?action=confemail" method="post" id="conf_email" name="conf_email">
-            <input type="text" name="cfemail" id="cfemail" maxlength="50" placeholder="Email Sender Address..." value="{{ pageinfo.page_email }}" required>
+            <input type="text" name="cfemail" id="cfemail" maxlength="50" placeholder="Email Sender Address..." value="{{ pageinfo.page_email }}">
             <input type="submit">
         </form>
 
@@ -53,7 +53,7 @@
         <p style="font-size: 0.7em;">To get the app access token: Gmail account settings > Security > Two Step Verification > App Passwords > Generate an "Other (Personalized Name)" with a name of your choosing.</p>
         <p style="font-size: 0.7em;">The generated token should be inserted here:</p>
         <form action="base_mngt?action=confemailkey" method="post" id="conf_emailkey" name="conf_emailkey">
-            <input type="password" name="emailkey" id="emailkey" maxlength="50" placeholder="Email Sender Token..." required>
+            <input type="password" name="emailkey" id="emailkey" maxlength="50" placeholder="Email Sender Token...">
             <br>
             <input type="submit">
         </form>
@@ -69,10 +69,12 @@
             <input type="password" name="cpass" id="cpass" maxlength="50" placeholder="Current Management Password..." required>
             <br>
             <input type="password" name="npass" id="npass" maxlength="50" placeholder="New Password..." required>
+            <p id="passvalidation" name="passvalidation" style="display: inline; font-size: 0.7em; white-space: normal; margin-left: 0.5rem;"></p>
             <br>
             <input type="password" name="repass" id="repass" maxlength="50" placeholder="Repeat New Password..." required>
+            <p id="repassvalidation" name="repassvalidation" style="display: inline; font-size: 0.7em; white-space: normal; margin-left: 0.5rem;"></p>
             <br>
-            <input type="submit">
+            <input type="submit" id="passupdate" name="passupdate" disabled>
         </form>
 
     </div>
@@ -99,23 +101,14 @@
     
     </div>
     
-    <div class="artmngcontainer">
-        
-        <h1>Change the META info of the page:</h1>
-        <p style="font-size: 0.7em;">Place to store the META Tags of the page.</p> 
-        <p style="font-size: 0.7em;">This info is not shown anywhere in the page, but it is stored on a special place to be used by search engines and helps the page to be easilly found when someone searches for it</p>
-        <p style="font-size: 0.7em;">Example of input (always with comma ate the end): photography, images, travel, street, landscapes, vistas, cityscapes, urban,...</p>
-        <form action="base_mngt?action=metatags" method="post" id="metainfo" name="metainfo">
-            <textarea type="text" name="meta" id="meta" placeholder="META tags..." required>{% if pageinfo.meta %}{{ pageinfo.meta }}{% endif %}</textarea>
-            <input type="submit">
-        </form>
-    
-    </div>
-
 </div>
 
 <ul>
     <a href="/pg_mngt"><li class="limngt">Return</li></a>
 </ul>
+
+<script>
+    passvalidation()
+</script>
 
 {% endblock %}

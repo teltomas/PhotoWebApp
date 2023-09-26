@@ -36,7 +36,7 @@ events_exist = False
 conn = get_db_connection()
 page_info = conn.execute('SELECT page_name, small_descr, about, inst_link, face_link, \
                          yt_link, tweet_link, px_link, bhnc_link, tumblr_link, flickr_link, \
-                         about_img, prof_pic, legal, copyright, page_email, meta \
+                         about_img, prof_pic, legal, copyright, page_email \
                          FROM page_info WHERE id = 1;').fetchone() # for the general page info #
 journals = conn.execute('SELECT * FROM articles WHERE type = "journal" \
                         AND archived = 0;').fetchone() # determine if there are journals in db to activate the journal nav item #
@@ -484,7 +484,7 @@ def ar_mngmt():
                                 events = events_exist,
                                 galls = gall_nav,
                                 article = article,
-                                ar_type = ar_type)
+                                ar_type = ar_type), 415
 
                 else:
 
@@ -571,25 +571,21 @@ def ar_new():
         if request.form.get("ar_type"):
             ar_type = request.form.get("ar_type")
         else:
-            return render_template("mngmt_main.html",
-                            pageinfo = page_info, 
-                            journal = journal_exist, 
-                            events = events_exist,
-                            galls = gall_nav,
-                            flash_message = "Error - Undefined request"), 400
-
+            flash('Error - Undefined request')
+            return redirect("management"), 400
+        
         # article title and content text validation and return error if undefined #
         if request.form.get("title") and request.form.get("content"):
             title = request.form.get("title")
             content = request.form.get("content")
         else:
+            flash('Title and content text required')
             return render_template("ar_new.html",
                             pageinfo = page_info, 
                             journal = journal_exist, 
                             events = events_exist,
                             galls = gall_nav,
-                            ar_type = ar_type,
-                            flash_message = "Title and content text required!"), 400
+                            ar_type = ar_type), 400
         
         # detect link input and store it, set null in case of no input #
         if request.form.get("link"):
@@ -622,14 +618,13 @@ def ar_new():
 
             # get image from input and process it #
             if not img_upload(request.files['img'], path, ['.jpg', 'jpeg'], 800): 
-                    
+                flash('New article successfully posted to ' + ar_type + ' BUT invalid image discarded.')
                 return render_template("ar_mngt.html",
                         pageinfo = page_info, 
                         journal = journal_exist, 
                         events = events_exist,
                         galls = gall_nav,
-                        ar_type = ar_type,
-                        flash_message = "New article successfully posted to " + ar_type + " BUT invalid image discarded.")
+                        ar_type = ar_type), 415
 
             # update article in db with image name #
             conn = get_db_connection()
@@ -638,6 +633,7 @@ def ar_new():
             conn.commit()
             conn.close()
 
+        flash('New article successfully created.')
         return redirect("ar_mngt?artp=" + ar_type)
     
 @app.route("/archive", methods=["GET", "POST"])
@@ -651,29 +647,19 @@ def archive():
     conn.close()
 
     if request.method == "GET":
-
-        # render archived articles page with message in case of non existing archived articles #
-        if not archived_ar:
-
-            return render_template("/archive.html",
-                            pageinfo = page_info, 
-                            journal = journal_exist, 
-                            events = events_exist,
-                            galls = gall_nav,
-                            flash_message = "Archive is empty.")
         
         # resize content text to be posted and render page #
-        for row in archived_ar:
-            if len(row['content'])>150:
-                row['content'] = row['content'][:150]+"..."
-            
+        if archived_ar:
+            for row in archived_ar:
+                if len(row['content'])>150:
+                    row['content'] = row['content'][:150]+"..."
+                
         return render_template("/archive.html",
                             pageinfo = page_info, 
                             journal = journal_exist, 
                             events = events_exist,
                             galls = gall_nav,
-                            entries = archived_ar)
-    
+                            entries = archived_ar)    
 
     if request.method == "POST":
 
@@ -710,8 +696,10 @@ def archive():
 
             # delete article image if exists #
             if image['image']:
+
+                if os.path.exists(cwd + "/static/images/" + str(image['image']) + ".jpg"):
                 
-                os.remove(cwd+"/static/images/" + str(image['image']) + ".jpg") 
+                    os.remove(cwd + "/static/images/" + str(image['image']) + ".jpg") 
 
             # remove entry from db #
             conn = get_db_connection()
@@ -767,13 +755,8 @@ def profile_mngt():
 
         # get which action was requested and proceed with change, return error in case of no argument #        
         if not request.args.get('action', ''):
-            return render_template("/profile_mngt.html",
-                                        pageinfo = page_info, 
-                                        journal = journal_exist, 
-                                        events = events_exist,
-                                        galls = gall_nav,
-                                        flash_message = "Error - request undefined"
-                                        ), 400
+            flash('Error - undefined request')
+            return redirect('/profile_mngt'), 400
         
         action = request.args.get('action', '')
 
@@ -782,13 +765,8 @@ def profile_mngt():
 
             if not request.form.get("pg_name"):
 
-                return render_template("/profile_mngt.html",
-                                        pageinfo = page_info, 
-                                        journal = journal_exist, 
-                                        events = events_exist,
-                                        galls = gall_nav,
-                                        flash_message = "Page name input required"
-                                        ), 400
+                flash('Page name input required')
+                return redirect('/profile_mngt'), 400
             
             else:
                 
@@ -801,25 +779,33 @@ def profile_mngt():
 
             return redirect("/profile_mngt")
 
-        # update description #
+        # update description - set null if empty #
         if action == "description":
 
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE page_info SET small_descr = ? \
-                        WHERE id = 1;', (request.form.get("pg_descr"),))
+            if request.form.get("pg_descr"):
+                cur.execute('UPDATE page_info SET small_descr = ? \
+                            WHERE id = 1;', (request.form.get("pg_descr"),))
+            else:
+                cur.execute('UPDATE page_info SET small_descr = ? \
+                            WHERE id = 1;', (None,))
             conn.commit()
             conn.close()
 
             return redirect("/profile_mngt")
 
-        # update about section info #
+        # update about section info - set null if empty #
         if action == "aboutcontent":
 
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute('UPDATE page_info SET about = ? \
-                        WHERE id = 1;', (request.form.get("abttxt"),))
+            if request.form.get("abttxt"):
+                cur.execute('UPDATE page_info SET about = ? \
+                            WHERE id = 1;', (request.form.get("abttxt"),))
+            else:
+                cur.execute('UPDATE page_info SET about = ? \
+                            WHERE id = 1;', (None,))
             conn.commit()
             conn.close()
 
@@ -836,12 +822,8 @@ def profile_mngt():
 
                 if not img_upload(request.files['abimg'], path, ['.jpg', 'jpeg'], 1000): 
 
-                    return render_template("profile_mngt.html",
-                                pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                flash_message = "Failed to upload image.")
+                    flash('Failed to upload image')
+                    return redirect('profile_mngt'), 415
             
                 # In case DB had the "about image" deactivated, activate it # 
 
@@ -854,6 +836,7 @@ def profile_mngt():
                     conn.commit()
                     conn.close() 
 
+            flash('About section image successfully updated')
             return redirect("/profile_mngt") 
         
         # delete about section photo from files and update db on case of photo removal request #
@@ -873,6 +856,7 @@ def profile_mngt():
                 conn.commit()
                 conn.close()
 
+            flash('About section image successfully removed')
             return redirect("/profile_mngt")
 
         # profile image upload - same process as above, but in this case also .png files accepted in case of logo upload #
@@ -888,13 +872,8 @@ def profile_mngt():
                 path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
 
                 if not img_upload(request.files['profimg'], path, ['.jpg', 'jpeg', '.png'], 600): 
-            
-                    return render_template("profile_mngt.html",
-                                pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                flash_message = "Failed to upload image."), 400
+                    flash('Failed to upload image')
+                    return redirect('profile_mngt'), 415
                 
                 # db needs to be updated regarding the possibility of different file extensions #
                 conn = get_db_connection()
@@ -903,6 +882,7 @@ def profile_mngt():
                 conn.commit()
                 conn.close() 
 
+            flash('Profile image successfully updated')
             return redirect("/profile_mngt") 
 
         # section of update social networks links #
@@ -919,6 +899,7 @@ def profile_mngt():
             conn.commit()
             conn.close()
 
+            flash('Link successfully updated')
             return redirect("/profile_mngt")
         
         if action == "face":
@@ -933,6 +914,7 @@ def profile_mngt():
             conn.commit()
             conn.close()
 
+            flash('Link successfully updated')
             return redirect("/profile_mngt")
 
         if action == "ytb":
@@ -947,6 +929,7 @@ def profile_mngt():
             conn.commit()
             conn.close()
 
+            flash('Link successfully updated')
             return redirect("/profile_mngt")
 
         if action == "tweet":
@@ -961,6 +944,7 @@ def profile_mngt():
             conn.commit()
             conn.close()
 
+            flash('Link successfully updated')
             return redirect("/profile_mngt")
 
         if action == "px":
@@ -975,6 +959,7 @@ def profile_mngt():
             conn.commit()
             conn.close()
 
+            flash('Link successfully updated')
             return redirect("/profile_mngt")
 
         if action == "bhnc":
@@ -989,6 +974,7 @@ def profile_mngt():
             conn.commit()
             conn.close()
 
+            flash('Link successfully updated')
             return redirect("/profile_mngt")
 
         if action == "flickr":
@@ -1003,6 +989,7 @@ def profile_mngt():
             conn.commit()
             conn.close()
 
+            flash('Link successfully updated')
             return redirect("/profile_mngt")
 
         if action == "tumblr":
@@ -1017,16 +1004,12 @@ def profile_mngt():
             conn.commit()
             conn.close()
 
+            flash('Link successfully updated')
             return redirect("/profile_mngt")
         
         # in case of undefined action request, return error #
-        return render_template("/profile_mngt.html",
-                                        pageinfo = page_info, 
-                                        journal = journal_exist, 
-                                        events = events_exist,
-                                        galls = gall_nav,
-                                        flash_message = "Error - request undefined"
-                                        ), 400
+        flash('Error - request undefined')
+        return redirect('/profile_mngt'), 400
     
     return redirect("/profile_mngt")
 
@@ -1053,8 +1036,11 @@ def base_mngt():
     
     if request.method == "POST":
 
-        # update the page info considering the users request as "action" #
-
+        # update the page info considering the users request as "action", return error if no action defined #
+        if not request.args.get('action', ''):
+            flash('Error - Undefined request')
+            return redirect('base_mngt'), 400
+        
         action = request.args.get('action', '')
 
         if action == "pgemail":
@@ -1068,17 +1054,13 @@ def base_mngt():
                 conn.commit()
                 conn.close()
 
+                flash('Email updated')
                 return redirect("/base_mngt")
 
-            else: 
+            else:
 
-                return render_template("/base_mngt.html",
-                                    pageinfo = page_info, 
-                                    journal = journal_exist, 
-                                    events = events_exist,
-                                    galls = gall_nav,
-                                    flash_message = "User email required."
-                                    )
+                flash('User email required')
+                return redirect('/base_mngt'), 400
         
         # update the page configuration email - from where the page messages will be sent #
         if action == "confemail":
@@ -1094,6 +1076,7 @@ def base_mngt():
             conn.commit()
             conn.close()
 
+            flash('Configuration email updated')
             return redirect("/base_mngt")
         
         # update the page configuration email access token #
@@ -1110,13 +1093,8 @@ def base_mngt():
             conn.commit()
             conn.close()
 
-            return render_template("/base_mngt.html",
-                                pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                flash_message = "Email token updated"
-                                )
+            flash('Configuration email token updated')
+            return redirect("/base_mngt")
         
         # change the management section access password #
         if action == "passchange":
@@ -1126,35 +1104,28 @@ def base_mngt():
             if not request.form.get("cpass") or not request.form.get("npass") \
                 or not request.form.get("repass"):
 
-                return render_template("/base_mngt.html",
-                                pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                flash_message = "All password fields required"
-                                )
+                flash('All password fields required')
+                return redirect('/base_mngt'), 400
 
             # check if current password matches #
             if not check_password_hash(page_info['hash'], request.form.get("cpass")):
-
+                
+                flash('Wrong password')
                 return render_template("/base_mngt.html",
                                 pageinfo = page_info, 
                                 journal = journal_exist, 
                                 events = events_exist,
-                                galls = gall_nav,
-                                flash_message = "Wrong password"
-                                )
+                                galls = gall_nav), 401
             
             # require matching new passwords #
             if request.form.get("npass") != request.form.get("repass"):
 
+                flash("New password fields don't match")
                 return render_template("/base_mngt.html",
                                 pageinfo = page_info, 
                                 journal = journal_exist, 
                                 events = events_exist,
-                                galls = gall_nav,
-                                flash_message = "New password fields don't match"
-                                )
+                                galls = gall_nav)
             
             # check if password meets the requirements - 8 chars and numbers, allow special chars #
             nkey = request.form.get("npass")
@@ -1165,13 +1136,12 @@ def base_mngt():
         
             if (len(nkey) < 8 or count_numb < 1 or count_numb == len(nkey)):
 
+                flash("New password does not meet the requirements")
                 return render_template("/base_mngt.html",
                                 pageinfo = page_info, 
                                 journal = journal_exist, 
                                 events = events_exist,
-                                galls = gall_nav,
-                                flash_message = "New password does not meet the requirements"
-                                )
+                                galls = gall_nav)
             
             # if password meets requirements, proceed wish hash generator and store it #
             else:
@@ -1183,15 +1153,10 @@ def base_mngt():
                 conn.commit()
                 conn.close()
 
-            return render_template("/base_mngt.html",
-                                pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                flash_message = "Password updated"
-                                )
+            flash("Password successfully updated")
+            return redirect('/base_mngt')
         
-        # update legal info #
+        # update legal info - set null if no input #
         if action == "legal":
 
             conn = get_db_connection()
@@ -1203,9 +1168,10 @@ def base_mngt():
             conn.commit()
             conn.close()
 
+            flash('Legal info updated')
             return redirect("/base_mngt")
         
-        # update copyright info #
+        # update copyright info - set null if no input #
         if action == "copy":
 
             conn = get_db_connection()
@@ -1217,30 +1183,12 @@ def base_mngt():
             conn.commit()
             conn.close()
 
+            flash('Copyright info updated')
             return redirect("/base_mngt")
-        
-        # update meta tags data #
-        if action == "metatags":
-
-            conn = get_db_connection()
-            cur = conn.cursor()
-            if request.form.get("meta"):
-                cur.execute('UPDATE page_info SET meta = ? WHERE id = 1;', (request.form.get("meta"),))
-            else:
-                cur.execute('UPDATE page_info SET meta = ? WHERE id = 1;', (None,))
-            conn.commit()
-            conn.close()
-
-            return redirect("/base_mngt")
-        
+               
         # return error if undefined action #
-        return render_template("/base_mngt.html",
-                                pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                flash_message = "Error - bad request"
-                                ), 400
+        flash('Error - Undefined request')
+        return redirect('/base_mngt'), 400
 
     return redirect("/base_mngt")
 
@@ -1259,7 +1207,11 @@ def aspect_mngt():
     
     if request.method == "POST":
 
-        # fecth action requested #
+        # fecth action requested - return error if none #
+        if not request.args.get('action', ''):
+            flash('Error - Undefined request')
+            return redirect('/aspect_mngt'), 400
+        
         action = request.args.get('action', '')
 
         # upload and update banner / hero image #
@@ -1270,23 +1222,15 @@ def aspect_mngt():
                 path = os.path.join((cwd+app.config['UPLOAD_PATH']), "2.jpg")
 
                 if not img_upload(request.files['heroimg'], path, ['.jpg', 'jpeg'], None): 
-            
-                    return render_template("aspect_mngt.html",
-                                pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                flash_message = "Failed to upload image - invalid file."), 400
-
+                    flash('Failed to upload image - invalid file')
+                    return redirect('/aspect_mngt'), 415
+                    
             else:
                 # return error message in case of submit with no file #
-                return render_template("/aspect_mngt.html",
-                                pageinfo = page_info, 
-                                    journal = journal_exist, 
-                                    events = events_exist,
-                                    galls = gall_nav,
-                                    flash_messsage = "No file selected"), 400
+                flash('Failed to upload image - no file selected')
+                return redirect('/aspect_mngt'), 400
 
+            flash('Image updated')
             return redirect("/aspect_mngt")
     
         # upload and update image favicon #
@@ -1307,31 +1251,23 @@ def aspect_mngt():
                     if file_ext not in ['.ico']:
                         
                         # return error if invalid file #
-                        return render_template("aspect_mngt.html",
-                                pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                flash_message = "Failed to upload icon - invalid file."), 400
+                        flash('Failed to upload image - invalid .ICON file')
+                        return redirect('/aspect_mngt'), 415
 
                 path = os.path.join((cwd+"static/icons/"), "favicon.ico")
 
                 img.save(path)
 
-            return render_template("/aspect_mngt.html",
-                                pageinfo = page_info, 
-                                    journal = journal_exist, 
-                                    events = events_exist,
-                                    galls = gall_nav)
+            flash('Page ICON successfully updated')
+            return redirect('/aspect_mngt')
+        
+        flash('Error - Undefined request')
+        return redirect('/aspect_mngt'), 400
     
-        return render_template("/aspect_mngt.html",
-                                pageinfo = page_info, 
-                                    journal = journal_exist, 
-                                    events = events_exist,
-                                    galls = gall_nav,
-                                    flash_message = "Error - undefined request"), 400
+    return redirect('/aspect_mngt')
+
     
-@app.route("/gall_mngt", methods=["GET", "POST"])
+@app.route("/gall_mngt", methods=["GET"])
 @login_required
 def gall_mngt():
 
@@ -1344,30 +1280,21 @@ def gall_mngt():
     images = conn.execute('SELECT id, title FROM images WHERE id > 2 ORDER BY id DESC;').fetchall()
     conn.close()
 
-    flash_message = None
-
-    # determine message to return in case of no gallery data #
-    if not galleries:
-        flash_message = "There are no galleries to display."
-
     # limit galleries info shown text if exist # 
-    for row in galleries:
-        if row['description'] and len(row['description']) > 100:
-            row['description'] = row['description'][:100] + "..."
+    if galleries:
+        for row in galleries:
+            if row['description'] and len(row['description']) > 100:
+                row['description'] = row['description'][:100] + "..."
 
-    if request.method == "GET":
+    return render_template("/gall_mngt.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            galleries = galleries,
+                            img_gall = img_gall,
+                            images = images)
 
-        return render_template("/gall_mngt.html",
-                               pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                galleries = galleries,
-                                img_gall = img_gall,
-                                images = images,
-                                flash_message = flash_message)
-    
-    return redirect("/gall_mngt")  
 
 @app.route("/gall_new", methods=["GET", "POST"])
 @login_required
@@ -1377,6 +1304,7 @@ def gall_new():
 
     if request.method == "GET":
 
+        # render the gallery creation page #
         return render_template("/gall_new.html",
                                pageinfo = page_info, 
                                 journal = journal_exist, 
@@ -1388,13 +1316,12 @@ def gall_new():
 
         # guarantee a title input #
         if not request.form.get("title"):
+            flash('Gallery Title is required')
             return render_template("/gall_new.html",
                                pageinfo = page_info, 
                                 journal = journal_exist, 
                                 events = events_exist,
-                                galls = gall_nav,
-                                flash_message = "Title is required."
-                                ), 400
+                                galls = gall_nav), 400
         
         # set the gallery description to bd input, set Null if it has no content #
         if request.form.get("galldescr"):
@@ -1424,9 +1351,10 @@ def gall_edit():
     if request.args.get('id', ''):
         gall_id = request.args.get('id', '')
     else:
+        flash('Error - no gallery id defined')
         return redirect("/gall_mngt"), 400
     
-    # in case of get method get gallery info, its photos and also the photos that are not in the gallery, to render the edit page #
+    # get gallery photo and and also the photos that are not in the gallery, to render the edit page #
     conn = get_db_connection()
     gallery = conn.execute('SELECT * FROM galleries WHERE id = ? ORDER BY id DESC;', (gall_id,)).fetchone()
     images = conn.execute('SELECT gall_id, img_id, title FROM gall_img_index JOIN images ON gall_img_index.img_id = images.id WHERE gall_id = ?;', (gall_id,)).fetchall()
@@ -1435,7 +1363,7 @@ def gall_edit():
 
     images.reverse() # to render the photos in the gallery edit page the same order and way they are presented in the gallery presentantion page #
 
-    # split the quantity of images in three diferent arrays to display in the page grid #
+    # split the quantity of images in three diferent arrays to display in the page grid the same way they are presented in the galleries front end page #
     imgs_col1 = []
     imgs_col2 = []
     imgs_col3 = []
@@ -1480,6 +1408,7 @@ def gall_edit():
         if request.args.get('action', ''):    
             action = request.args.get('action', '')
         else:
+            flash('Error - Undefined request')
             return render_template("/gall_edit.html",
                                 pageinfo = page_info, 
                                 journal = journal_exist, 
@@ -1490,27 +1419,15 @@ def gall_edit():
                                 imgs_col1 = imgs_col1,
                                 imgs_col2 = imgs_col2,
                                 imgs_col3 = imgs_col3,
-                                freeimgs = freeimgs,
-                                flash_message = "Error - Undefined request"
+                                freeimgs = freeimgs
                                 ), 400
 
         if action == "edit": # if the change is in the gallery title or description #
 
             # gallery title is a must - return error otherwise #
             if not request.form.get("title"):
-                return render_template("/gall_edit.html",
-                                pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                gallery = gallery,
-                                images = images,
-                                imgs_col1 = imgs_col1,
-                                imgs_col2 = imgs_col2,
-                                imgs_col3 = imgs_col3,
-                                freeimgs = freeimgs,
-                                flash_message = "Title is required"
-                                ), 400
+                flash('Gallery title is required')
+                return redirect("/gall_edit?id="+gall_id), 400
             
             # get description input info, set Null in no input #
             if request.form.get("galldescr"):
@@ -1525,6 +1442,7 @@ def gall_edit():
             conn.commit()
             conn.close()
 
+            flash('Successfully updated')
             return redirect("/gall_edit?id="+gall_id)
         
 
@@ -1534,19 +1452,8 @@ def gall_edit():
             if request.args.get('imgid',''):
                 img_id = request.args.get('imgid', '')
             else:
-                return render_template("/gall_edit.html",
-                                pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                gallery = gallery,
-                                images = images,
-                                imgs_col1 = imgs_col1,
-                                imgs_col2 = imgs_col2,
-                                imgs_col3 = imgs_col3,
-                                freeimgs = freeimgs,
-                                flash_message = "Error - Image Id undefined to proceed with request."
-                                ), 400
+                flash('Error - Image Id undefined, unable to proceed with request')
+                return redirect("/gall_edit?id="+gall_id), 400
 
             # remove from the photo to gallery index table the record where the image is attached to the gallery #
             conn = get_db_connection()
@@ -1563,19 +1470,8 @@ def gall_edit():
             if request.args.get('imgid',''):
                 img_id = request.args.get('imgid', '')
             else:
-                return render_template("/gall_edit.html",
-                                pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                gallery = gallery,
-                                images = images,
-                                imgs_col1 = imgs_col1,
-                                imgs_col2 = imgs_col2,
-                                imgs_col3 = imgs_col3,
-                                freeimgs = freeimgs,
-                                flash_message = "Error - Image Id undefined to proceed with request."
-                                ), 400
+                flash('Error - Image Id undefined, unable to proceed with request')
+                return redirect("/gall_edit?id="+gall_id), 400
 
             # add to the image to gallery index table the image to gallery match #
             conn = get_db_connection()
@@ -1587,19 +1483,9 @@ def gall_edit():
             return redirect("/gall_edit?id="+gall_id)  
         
         # return error message in case of undefined action request #
-        return render_template("/gall_edit.html",
-                                pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                gallery = gallery,
-                                images = images,
-                                imgs_col1 = imgs_col1,
-                                imgs_col2 = imgs_col2,
-                                imgs_col3 = imgs_col3,
-                                freeimgs = freeimgs,
-                                flash_message = "Error - Undefined request."
-                                ), 400
+        
+        flash('Error - undefined request')
+        return redirect("/gall_edit?id="+gall_id), 400
         
     return redirect("/gall_mngt")  
 
@@ -1616,6 +1502,7 @@ def gall_del():
         if request.args.get('id', ''):
             gall_id = request.args.get('id', '')
         else:
+            flash('Error - Undefined gallery id')
             return redirect("/gall_mngt"), 400
         
         conn = get_db_connection()
@@ -1625,6 +1512,7 @@ def gall_del():
         conn.commit()
         conn.close()
 
+        flash('Gallery successfully deleted')
         return redirect("/gall_mngt")   # return to the galls and photos management page #
     
     return redirect("/gall_mngt")  
@@ -1640,6 +1528,7 @@ def img_edit():
     if request.args.get('imgid', ''):
         img_id = request.args.get('imgid', '')
     else:
+        flash('Error - Undefined image id')
         return redirect("/gall_mngt"), 400
 
     # fetch from the DB the image data to fill the image edit page #
@@ -1666,13 +1555,32 @@ def img_edit():
     
     if request.method == "POST":
 
+        # check title input - return error if null #
+        if request.form.get("title"):
+            title = request.form.get("title")
+        else:
+            flash('Image title is required')
+            return redirect("/img_edit?imgid=" + img_id), 400
+        
+        # validation of remaining info - set null if empty #
+        if request.form.get("alt"):
+            alt = request.form.get("alt")
+        else:
+            alt = None
+
+        if request.form.get("description"):
+            description = request.form.get("description")
+        else:
+            description = None
+
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('UPDATE images SET title = ?, alt = ?, description = ? WHERE id = ?;', (request.form.get("title"), request.form.get("alt"), request.form.get("description"), img_id,))
+        cur.execute('UPDATE images SET title = ?, alt = ?, description = ? WHERE id = ?;', (title, alt, description, img_id,))
         conn.commit()
         conn.close()
 
-        return redirect("/gall_mngt")
+        flash('Image successfully updated')
+        return redirect("/img_edit?imgid=" + img_id)
     
     return redirect("/gall_mngt")
 
@@ -1684,6 +1592,7 @@ def img_del():
 
     # fetch id of image to remove, return error if undefined #
     if not request.form.get("img_id"):
+        flash('Error - image id undefined')
         return redirect("/gall_mngt"), 400
 
     img_id = request.form.get("img_id")
@@ -1707,6 +1616,7 @@ def img_del():
 
                 os.remove(cwd + "/static/images/thumbs/" + img_id + ".jpg")
 
+        flash('Image successfully deleted')
         return redirect("/gall_mngt")   # return to the galls and photos management page      
     
     return redirect("/gall_mngt")
@@ -1743,10 +1653,13 @@ def multi_img_del():
         conn.commit()
         conn.close()
 
+        flash('Images successfully deleted')
+        return redirect("/gall_mngt")
+
     else:
+        flash("Error - images id's undefined")
         return redirect("/gall_mngt"), 400
     
-    return redirect("/gall_mngt")
 
 @app.route("/photos_upload", methods=["GET", "POST"])
 @login_required
@@ -1783,8 +1696,7 @@ def photos_upload():
                 if file_ext not in ['.jpg', '.jpeg'] or \
                     file_ext != validate_image(img.stream):
                     
-                    return "Invalid image", 400
-                
+                    return "Invalid image", 415                
                 
             # if valid insert image into DB and get its id to be saved in files #
             conn = get_db_connection()
@@ -1811,7 +1723,10 @@ def photos_upload():
             return '', 204
         
         else:
+            flash('Error - unable to upload images')
             return redirect("/gall_mngt"), 400
+        
+    return redirect("/gall_mngt")
     
 
 @app.errorhandler(413)
@@ -1829,6 +1744,7 @@ def imgsrmv():
 
     # return error if no Id's #
     if not request.form.get("gall_id") or not request.form.get("imgrmvid"):
+        flash('Error - undefined gallery or image id')
         return redirect ("/gall_mngt"), 400
 
     gall_id = request.form.get("gall_id")
@@ -1849,6 +1765,7 @@ def imgsrmv():
 
     return redirect("/gall_edit?id="+gall_id)  
 
+
 @app.route("/imgsadd", methods=["POST"])
 @login_required
 def imgsadd():    
@@ -1857,6 +1774,7 @@ def imgsadd():
     ## same process as the remove multi images, but in this case data is added to the DB table, instead of removed ##
 
     if not request.form.get("gall_id") or not request.form.get("imgaddid"):
+        flash('Error - undefined gallery or image id')
         return redirect ("/gall_mngt")
 
     gall_id = request.form.get("gall_id")

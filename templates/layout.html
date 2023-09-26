@@ -7,6 +7,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="initial-scale=1, width=device-width">
 
+        <meta name="author" content="{{ pageinfo.page_name }}" />
+        {% if pageinfo.small_descr %}
+        <meta name="description" content="{{ pageinfo.small_descr }}" />
+        {% endif %}
+        <meta property="og:title" content="{{ pageinfo.page_name }}" />
+        {% if pageinfo.small_descr %}
+        <meta property="og:description" content="{{ pageinfo.small_descr }}" />
+        {% endif %}
+        
         {% block script %}{% endblock %}
         {% block extracss %}{% endblock %}
         
@@ -14,9 +23,7 @@
 
         <link href="/static/styles.css" rel="stylesheet">
 
-        <script src="/static/js.js"></script>
-
-        
+        <script src="/static/js.js"></script>        
 
         <title>{{ pageinfo.page_name }}: {% block title %}{% endblock %}</title>
 
@@ -112,28 +119,28 @@
 
             <p style="white-space: normal;">                
                 {% if pageinfo.face_link %}
-                    <a href="{{ pageinfo.face_link | http }}" target="new"><img class="icons" alt="Facebook" src="static/icons/face.png"></a>
+                    <a href="{{ pageinfo.face_link }}" target="new"><img class="icons" alt="Facebook" src="static/icons/face.png"></a>
                 {% endif %} 
                 {% if pageinfo.inst_link %}
-                    <a href="{{ pageinfo.inst_link | http }}" target="new"><img class="icons" alt="Instagram" src="static/icons/insta.png"></a>
+                    <a href="{{ pageinfo.inst_link }}" target="new"><img class="icons" alt="Instagram" src="static/icons/insta.png"></a>
                 {% endif %} 
                 {% if pageinfo.tweet_link %}
-                    <a href="{{ pageinfo.tweet_link | http }}" target="new"><img class="icons" alt="Twitter X" src="static/icons/tweet.png"></a>
+                    <a href="{{ pageinfo.tweet_link }}" target="new"><img class="icons" alt="Twitter X" src="static/icons/tweet.png"></a>
                 {% endif %} 
                 {% if pageinfo.yt_link %}
-                    <a href="{{ pageinfo.yt_link | http }}" target="new"><img class="icons" alt="YouTube" src="static/icons/ytb.png"></a>
+                    <a href="{{ pageinfo.yt_link }}" target="new"><img class="icons" alt="YouTube" src="static/icons/ytb.png"></a>
                 {% endif %} 
                 {% if pageinfo.px_link %}
-                    <a href="{{ pageinfo.px_link | http }}" target="new"><img class="icons" alt="500px" src="static/icons/5px.png"></a>
+                    <a href="{{ pageinfo.px_link }}" target="new"><img class="icons" alt="500px" src="static/icons/5px.png"></a>
                 {% endif %} 
                 {% if pageinfo.bhnc_link %}
-                    <a href="{{ pageinfo.bhnc_link | http }}" target="new"><img class="icons" alt="Behance" src="static/icons/bh.png"></a>
+                    <a href="{{ pageinfo.bhnc_link }}" target="new"><img class="icons" alt="Behance" src="static/icons/bh.png"></a>
                 {% endif %} 
                 {% if pageinfo.flickr_link %}
-                    <a href="{{ pageinfo.flickr_link | http }}" target="new"><img class="icons" alt="Flickr" src="static/icons/fli.png"></a>
+                    <a href="{{ pageinfo.flickr_link }}" target="new"><img class="icons" alt="Flickr" src="static/icons/fli.png"></a>
                 {% endif %} 
                 {% if pageinfo.tumblr_link %}
-                    <a href="{{ pageinfo.tumblr_link | http }}" target="new"><img class="icons" alt="Tumblr" style="border-radius: 3px;" src="static/icons/tblr.png"></a>
+                    <a href="{{ pageinfo.tumblr_link }}" target="new"><img class="icons" alt="Tumblr" style="border-radius: 3px;" src="static/icons/tblr.png"></a>
                 {% endif %}                     
             </p>
 

@@ -7,8 +7,10 @@
 {% block main %}
 <div class="article_container">
     <h3>About</h3>    
-        <div class="article_content" style="border-bottom: none; text-align: center;">                
+        <div class="article_content" style="border-bottom: none; text-align: center;"> 
+            {% if pageinfo.about %}               
             <p>{{ pageinfo.about }}</p> 
+            {% endif %}  
             <br>           
             {% if pageinfo.about_img %}
                 <img class="showcaseimg" alt="About Photograph" src="static/images/0.jpg">
