@@ -106,3 +106,13 @@ def img_upload(image, path, extentions, size):
 
     # return if success #
     return True
+
+# link http mngement #
+
+def dblink(link):
+
+    if link and link[:7] != "http://":
+
+        link = "http://" + str(link)
+
+    return link

@@ -16,68 +16,64 @@
 
     <h3>{{ gall_info.title }}</h3>
 
-    <p>
-        {{ gall_info.description }}
-    </p>
+    <p>{% if gall_info.description %}{{ gall_info.description }}{% endif %}</p>
 
 </div>
 
 <div class="photo_gallery">       
+    {% if imgs_col1 %}
+        <div class="photo_column">
+        {% for row in imgs_col1 %}            
+            <a class="photolink" href="static/images/{{ row.img_id }}.jpg" data-lightbox="{{ gall_info.title }}" data-title="{{ row.title }}">
+                <div class="photo_container">
+                    <img loading="lazy" class="gall_photo" alt="{{ row.alt }}" src="static/images/{{ row.img_id }}.jpg">
+                    <div class="gall_photocontent">
+                        <h6>{{ row.title }}</h6>
+                        {% if row.description %}
+                        <p class="text_photocontent">{{ row.description }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>                
+        {% endfor %}
+        </div>
+    {% endif %}
     
-    <div class="photo_column">
-    {% for row in imgs_col1 %}
-        
-        <a class="photolink" href="static/images/{{ row.img_id }}.jpg" data-lightbox="{{ gall_info.title }}" data-title="{{ row.title }}">
-            <div class="photo_container">
-                <img loading="lazy" class="gall_photo" alt="{{ row.alt }}" src="static/images/{{ row.img_id }}.jpg">
-                <div class="gall_photocontent">
-                    <h6>{{ row.title }}</h6>
-                    {% if row.description %}
-                    <p class="text_photocontent">{{ row.description }}</p>
-                    {% endif %}
+    {% if imgs_col2 %}
+        <div class="photo_column">
+            {% for row in imgs_col2 %}            
+            <a class="photolink" href="static/images/{{ row.img_id }}.jpg" data-lightbox="{{ gall_info.title }}" data-title="{{ row.title }}">
+                <div class="photo_container">
+                    <img loading="lazy" class="gall_photo" alt="{{ row.alt }}" src="static/images/{{ row.img_id }}.jpg">  
+                    <div class="gall_photocontent">
+                        <h6>{{ row.title }}</h6>
+                        {% if row.description %}
+                        <p class="text_photocontent">{{ row.description }}</p>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
-        </a>
-            
-    {% endfor %}
-    </div>
+            </a>            
+            {% endfor %}
+        </div>
+    {% endif %}
 
-    <div class="photo_column">
-        {% for row in imgs_col2 %}        
-        
-        <a class="photolink" href="static/images/{{ row.img_id }}.jpg" data-lightbox="{{ gall_info.title }}" data-title="{{ row.title }}">
-            <div class="photo_container">
-                <img loading="lazy" class="gall_photo" alt="{{ row.alt }}" src="static/images/{{ row.img_id }}.jpg">  
-                <div class="gall_photocontent">
-                    <h6>{{ row.title }}</h6>
-                    {% if row.description %}
-                    <p class="text_photocontent">{{ row.description }}</p>
-                    {% endif %}
+    {% if imgs_col3 %}
+        <div class="photo_column">
+            {% for row in imgs_col3 %}
+            <a class="photolink" href="static/images/{{ row.img_id }}.jpg" data-lightbox="{{ gall_info.title }}" data-title="{{ row.title }}">
+                <div class="photo_container">
+                <img loading="lazy" class="gall_photo" alt="{{ row.alt }}" src="static/images/{{ row.img_id }}.jpg">    
+                    <div class="gall_photocontent">
+                        <h6>{{ row.title }}</h6>
+                        {% if row.description %}
+                        <p class="text_photocontent">{{ row.description }}</p>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
-        </a>
-           
-        {% endfor %}
-    </div>
-
-    <div class="photo_column">
-        {% for row in imgs_col3 %}
-        
-        
-        <a class="photolink" href="static/images/{{ row.img_id }}.jpg" data-lightbox="{{ gall_info.title }}" data-title="{{ row.title }}">
-            <div class="photo_container">
-            <img loading="lazy" class="gall_photo" alt="{{ row.alt }}" src="static/images/{{ row.img_id }}.jpg">    
-                <div class="gall_photocontent">
-                    <h6>{{ row.title }}</h6>
-                    {% if row.description %}
-                    <p class="text_photocontent">{{ row.description }}</p>
-                    {% endif %}
-                </div>
-            </div>
-        </a>
-        
-        {% endfor %}
-    </div>
+            </a>            
+            {% endfor %}
+        </div>
+    {% endif %}
 
 </div>
 

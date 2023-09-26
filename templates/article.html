@@ -8,9 +8,7 @@
 <div class="article_container">
     <br><br>
     <h3>{{ page_type | capital }}</h3>
-    {% if flash_message %}
-            <h4 style="text-decoration: none;">{{ flash_message }}</h4>
-    {% endif %}
+    
     {% if articles %}
         {% for article in articles %}
         <div class="article_content">

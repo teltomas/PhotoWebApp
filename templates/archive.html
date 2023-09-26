@@ -14,12 +14,14 @@
 
 <div class="mngt_container">
 
-    {% if flash_message %}
-        
-        <h1>{{ flash_message }}</h1>
-        <br/>
-        <br/>
-    {% endif %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+            <br><br>
+            <h5>{{ message }}</h5>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
     {% if entries %}
     <div class="entriesmng">

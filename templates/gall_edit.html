@@ -12,10 +12,14 @@ Edit Gallery Info - {{ gallery.title }}
 
     <h4 style="text-decoration: none;">Edit Gallery Info - {{ gallery.title }}</h4>
 
-    {% if flash_message %}
-        <br/>
-        <h5>{{ flash_message }}</h5>
-    {% endif %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+            <br><br>
+            <h5>{{ message }}</h5>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
     
     <br/>
     <br/>
@@ -45,82 +49,78 @@ Edit Gallery Info - {{ gallery.title }}
 
     {% if images %}
         <div class="photo_gallery" style="width: fit-content;">
-            <div class="photo_column">
-            {% for img in imgs_col1 %}
-                {% if img.gall_id == gallery.id %}
-                
-                <div class="gall_edit_container">
-                    <div class="image_wrapper">
-                        <form name="rmvselector" id="rmvselector">
-                            <input type="checkbox" name="gallsel" id="gallsel" onclick="" value="{{ img.img_id }}">
+            {% if imgs_col1 %}
+                <div class="photo_column">
+                    {% for img in imgs_col1 %}
+                        {% if img.gall_id == gallery.id %}                    
+                        <div class="gall_edit_container">
+                            <div class="image_wrapper">
+                                <form name="rmvselector" id="rmvselector">
+                                    <input type="checkbox" name="gallsel" id="gallsel" onclick="" value="{{ img.img_id }}">
+                                </form>
+                                <img class="gall_edit_img" src="static/images/thumbs/{{ img.img_id }}.jpg">                     
+                            </div>
+                        <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">{{ img.title }}</p>
+                        <form method="post" name="imgrmv">
+                            <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">
+                                <button class="img_icon" type="submit" formaction="/gall_edit?action=rmv&id={{ gallery.id }}&imgid={{ img.img_id }}"><img class="icons" src="static/icons/remove.png">
+                                    <span class="tooltiptext" style="font-size: 0.7em; margin-top: 1.6rem; margin-left: -6.6rem;">Remove from Gallery</span>
+                                </button>
+                            </p>                        
                         </form>
-                        <img class="gall_edit_img" src="static/images/thumbs/{{ img.img_id }}.jpg">
-                    </div>
-                <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">{{ img.title }}</p>
-                <form method="post" name="imgrmv">
-                    <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">
-                        <button class="img_icon" type="submit" formaction="/gall_edit?action=rmv&id={{ gallery.id }}&imgid={{ img.img_id }}"><img class="icons" src="static/icons/remove.png">
-                            <span class="tooltiptext" style="font-size: 0.7em; margin-top: 1.6rem; margin-left: -6.6rem;">Remove from Gallery</span>
-                        </button>
-                    </p>
-                    
-                </form>
+                        </div>                    
+                        {% endif %}
+                    {% endfor %}
                 </div>
-                
-                {% endif %}
-            {% endfor %}
-            </div>
-            <div class="photo_column">
-                {% for img in imgs_col2 %}
-                    {% if img.gall_id == gallery.id %}
-                    
-                    <div class="gall_edit_container">
-                        <div class="image_wrapper">
-                            <form name="rmvselector" id="rmvselector">
-                                <input type="checkbox" name="gallsel" id="gallsel" onclick="" value="{{ img.img_id }}">
+            {% endif %}
+            {% if imgs_col2 %}
+                <div class="photo_column">
+                    {% for img in imgs_col2 %}
+                        {% if img.gall_id == gallery.id %}                        
+                        <div class="gall_edit_container">
+                            <div class="image_wrapper">
+                                <form name="rmvselector" id="rmvselector">
+                                    <input type="checkbox" name="gallsel" id="gallsel" onclick="" value="{{ img.img_id }}">
+                                </form>
+                                <img class="gall_edit_img" src="static/images/thumbs/{{ img.img_id }}.jpg">
+                            </div>
+                            <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">{{ img.title }}</p>
+                            <form method="post" name="imgrmv">
+                                <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">
+                                    <button class="img_icon" type="submit" formaction="/gall_edit?action=rmv&id={{ gallery.id }}&imgid={{ img.img_id }}"><img class="icons" src="static/icons/remove.png">
+                                        <span class="tooltiptext" style="font-size: 0.7em; margin-top: 1.6rem; margin-left: -6.6rem;">Remove from Gallery</span>
+                                    </button>
+                                </p>                            
                             </form>
-                            <img class="gall_edit_img" src="static/images/thumbs/{{ img.img_id }}.jpg">
-                        </div>
-                    <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">{{ img.title }}</p>
-                    <form method="post" name="imgrmv">
-                        <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">
-                            <button class="img_icon" type="submit" formaction="/gall_edit?action=rmv&id={{ gallery.id }}&imgid={{ img.img_id }}"><img class="icons" src="static/icons/remove.png">
-                                <span class="tooltiptext" style="font-size: 0.7em; margin-top: 1.6rem; margin-left: -6.6rem;">Remove from Gallery</span>
-                            </button>
-                        </p>
-                        
-                    </form>
-                    </div>
-                    
-                    {% endif %}
-                {% endfor %}
-            </div>
-            <div class="photo_column">
-                {% for img in imgs_col3 %}
-                    {% if img.gall_id == gallery.id %}
-                    
-                    <div class="gall_edit_container">
-                        <div class="image_wrapper">
-                            <form name="rmvselector" id="rmvselector">
-                                <input type="checkbox" name="gallsel" id="gallsel" onclick="" value="{{ img.img_id }}">
-                            </form>
-                            <img class="gall_edit_img" src="static/images/thumbs/{{ img.img_id }}.jpg">
-                        </div>
-                    <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">{{ img.title }}</p>
-                    <form method="post" name="imgrmv">
-                        <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">
-                            <button class="img_icon" type="submit" formaction="/gall_edit?action=rmv&id={{ gallery.id }}&imgid={{ img.img_id }}"><img class="icons" src="static/icons/remove.png">
-                                <span class="tooltiptext" style="font-size: 0.7em; margin-top: 1.6rem; margin-left: -6.6rem;">Remove from Gallery</span>
-                            </button>
-                        </p>
-                        
-                    </form>
-                    </div>
-                    
-                    {% endif %}
-                {% endfor %}
-            </div>
-
+                        </div>                        
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% if imgs_col3 %}
+                <div class="photo_column">
+                    {% for img in imgs_col3 %}
+                        {% if img.gall_id == gallery.id %}                        
+                        <div class="gall_edit_container">
+                            <div class="image_wrapper">
+                                <form name="rmvselector" id="rmvselector">
+                                    <input type="checkbox" name="gallsel" id="gallsel" onclick="" value="{{ img.img_id }}">
+                                </form>
+                                <img class="gall_edit_img" src="static/images/thumbs/{{ img.img_id }}.jpg">
+                            </div>
+                        <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">{{ img.title }}</p>
+                        <form method="post" name="imgrmv">
+                            <p style="font-size: 0.7em; white-space: normal; margin: 0; padding: 0;">
+                                <button class="img_icon" type="submit" formaction="/gall_edit?action=rmv&id={{ gallery.id }}&imgid={{ img.img_id }}"><img class="icons" src="static/icons/remove.png">
+                                    <span class="tooltiptext" style="font-size: 0.7em; margin-top: 1.6rem; margin-left: -6.6rem;">Remove from Gallery</span>
+                                </button>
+                            </p>                        
+                        </form>
+                        </div>                    
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
 
         <!-- Gallery images selection option icons to remove photos -->

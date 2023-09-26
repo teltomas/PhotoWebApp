@@ -10,10 +10,15 @@
 
     <h4 style="text-decoration: none;">Edit Image Info - {{ img_info.title }}</h4>
 
-    {% if flash_message %}
-        <br/>
-        <h5>{{ flash_message }}</h5>
-    {% endif %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+            <br><br>
+            <h5>{{ message }}</h5>
+            <br><br>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
         <img class="img_edit" src="static/images/{{ img_info.id }}.jpg" alt="{{ img_info.id }}">
     

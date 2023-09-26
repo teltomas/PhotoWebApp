@@ -2,14 +2,14 @@ import os
 import sqlite3
 import re
 from datetime import datetime
-from flask import Flask, redirect, render_template, session, request
+from flask import Flask, redirect, render_template, session, request, flash
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_mail import Mail, Message
 
 
-from front import date, capital, dblink
-from back import validate_image, get_db_connection, image_resize, createthumb, login_required, img_upload
+from front import date, capital
+from back import validate_image, get_db_connection, image_resize, createthumb, login_required, img_upload, dblink
 
 # configure app
 app = Flask(__name__) 
@@ -207,37 +207,41 @@ def gallery():
                              WHERE gall_id = ?', (gall_id,)).fetchall()
     conn.close()
 
+    # check if gallery exists, if not redirect to main page #
 
-    if imgs_info:
+    if gall_info:
 
-        imgs_info.reverse()
-
-    # split the quantity of images in three diferent arrays to distribute in the page grid #
+        # split the quantity of images in three diferent arrays to distribute in the page grid #
         imgs_col1 = []
         imgs_col2 = []
         imgs_col3 = []
-    
-        i = 0
-        while i < len(imgs_info):
-            imgs_col1.append(imgs_info[i])
-            if i+1 < len(imgs_info): 
-                imgs_col2.append(imgs_info[i+1])
-            if i+2 < len(imgs_info): 
-                imgs_col3.append(imgs_info[i+2])
-            i = i + 3
 
-    # render the gallery page #
-    return render_template("/gallery.html", 
-                           pageinfo = page_info, 
-                           journal = journal_exist, 
-                           events = events_exist,
-                           galls = gall_nav,
-                           gall_info = gall_info,
-                           imgs_info = imgs_info,
-                           imgs_col1 = imgs_col1,
-                           imgs_col2 = imgs_col2,
-                           imgs_col3 = imgs_col3)
+        if imgs_info:
 
+            imgs_info.reverse()
+        
+            i = 0
+            while i < len(imgs_info):
+                imgs_col1.append(imgs_info[i])
+                if i+1 < len(imgs_info): 
+                    imgs_col2.append(imgs_info[i+1])
+                if i+2 < len(imgs_info): 
+                    imgs_col3.append(imgs_info[i+2])
+                i = i + 3
+
+        # render the gallery page #
+        return render_template("/gallery.html", 
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            gall_info = gall_info,
+                            imgs_info = imgs_info,
+                            imgs_col1 = imgs_col1,
+                            imgs_col2 = imgs_col2,
+                            imgs_col3 = imgs_col3)
+
+    return redirect("/"), 404
 
 @app.route("/<inftype>")
 def disclaimer(inftype):
@@ -288,21 +292,13 @@ def login():
 
         # Ensure username was submitted
         if not request.form.get("username"):
-            return render_template("/login.html", 
-                               pageinfo = page_info, 
-                               journal = journal_exist, 
-                               events = events_exist, 
-                               galls = gall_nav,
-                               flash_message = "Must provide username"), 400
+            flash('Must provide username')
+            return redirect('/login'), 400
 
         # Ensure password was submitted
         elif not request.form.get("password"):
-            return render_template("/login.html", 
-                               pageinfo = page_info, 
-                               journal = journal_exist, 
-                               events = events_exist, 
-                               galls = gall_nav,
-                               flash_message = "Must provide password"), 400
+            flash('Must provide password')
+            return redirect('/login'), 400
 
         # Query database for username
        
@@ -314,12 +310,8 @@ def login():
 
         # Ensure username exists and password is correct
         if not user or not check_password_hash(user["hash"], request.form.get("password")):
-            return render_template("/login.html", 
-                               pageinfo = page_info, 
-                               journal = journal_exist, 
-                               events = events_exist, 
-                               galls = gall_nav,
-                               flash_message = "Invalid username or password"), 400
+            flash('Invalid username or password')
+            return redirect('/login'), 400
 
         # Remember which user has logged in
         session["user_id"] = user["id"]
@@ -382,24 +374,12 @@ def ar_mngmt():
 
     if request.method == "GET":
         
-        if not ar_type:
-            return render_template("ar_mngt.html",
-                                pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                entries = entries,
-                                ar_type = ar_type,
-                                flash_message = "Error - Undefined article type"), 400
-
-        # message to display in caso of non existing entries of type requested # 
-        if not entries:
-            flash_message = "No entries to display."
-
-        else:
+        if ar_type not in ['journal', 'event']:
+            flash('Error - Undefined article type')
+            return redirect('/mngmt_main'), 400
             
-            flash_message = None
-            # limit the length of the text to display in the for each article #
+        # limit the length of the text to display in the for each article #
+        if entries:
             for row in entries:
                 if len(row['content'])>150:
                     row['content'] = row['content'][:150]+"..."
@@ -410,22 +390,15 @@ def ar_mngmt():
                             events = events_exist,
                             galls = gall_nav,
                             entries = entries,
-                            ar_type = ar_type,
-                            flash_message = flash_message)
+                            ar_type = ar_type)
     
     
     if request.method == "POST":
 
         if not request.form.get("id") or not request.args.get('action', ''):
 
-            return render_template("ar_mngt.html",
-                            pageinfo = page_info, 
-                            journal = journal_exist, 
-                            events = events_exist,
-                            galls = gall_nav,
-                            entries = entries,
-                            ar_type = ar_type,
-                            flash_message = "Error - Undefined request"), 400
+            flash('Error - Undefined request')
+            return redirect('/ar_mngt'), 400
 
         # fetch the Id from the article to edit #
         ar_id = request.form.get("id")
@@ -461,6 +434,7 @@ def ar_mngmt():
             conn.commit()
             conn.close()
 
+            flash('Article successfully archived')
             return redirect("/ar_mngt?artp="+ar_type)
         
         if action == 3: # save edited article entry #
@@ -471,18 +445,12 @@ def ar_mngmt():
                 article['content'] = request.form.get("content")
             else:
                 # Return error nessage in case of no input #
-                return render_template("edit_entry.html",
-                            pageinfo = page_info, 
-                            journal = journal_exist, 
-                            events = events_exist,
-                            galls = gall_nav,
-                            article = article,
-                            ar_type = ar_type,
-                            flash_message = "Title required and content text required"), 400
+                flash('Update failed - Title and content text required')
+                return redirect('/ar_mngt?artp='+ar_type), 400
 
             # get link input - set null if empty #
             if request.form.get("link"):
-                article['link'] = request.form.get("link")
+                article['link'] = dblink(request.form.get("link"))
             else:
                 article['link'] = None
 
@@ -508,15 +476,15 @@ def ar_mngmt():
                 # get image file from input and process it, loaded == True if success, False if not #
                                 
                 if not img_upload(request.files['img'], path, ['.jpg', 'jpeg'], 800):  
-
+                    
+                    flash('Article successfully updated BUT invalid image discarded.')
                     return render_template("edit_entry.html",
                                 pageinfo = page_info, 
                                 journal = journal_exist, 
                                 events = events_exist,
                                 galls = gall_nav,
                                 article = article,
-                                ar_type = ar_type,
-                                flash_message = "Article successfully updated BUT invalid image discarded.")
+                                ar_type = ar_type)
 
                 else:
 
@@ -527,16 +495,15 @@ def ar_mngmt():
                     conn.commit()
                     conn.close()
 
+            flash('Article successfully updated')
             return render_template("edit_entry.html",
                                 pageinfo = page_info, 
                                 journal = journal_exist, 
                                 events = events_exist,
                                 galls = gall_nav,
                                 article = article,
-                                ar_type = ar_type,
-                                flash_message = "Article successfully updated BUT invalid image discarded.")
-
-        
+                                ar_type = ar_type)
+                    
         if action == 4: # remove photo from article #
 
             # get image name from the db to proceed with file deletion #
@@ -559,6 +526,7 @@ def ar_mngmt():
             # update the image info from the article content so it does not try to load # 
             article['image'] = None
 
+            flash('Photo successfully removed')
             return render_template("edit_entry.html",
                             pageinfo = page_info, 
                             journal = journal_exist, 
@@ -569,14 +537,8 @@ def ar_mngmt():
                             )
                     
         # return error in case of undefined action #
-        return render_template("ar_mngt.html",
-                            pageinfo = page_info, 
-                            journal = journal_exist, 
-                            events = events_exist,
-                            galls = gall_nav,
-                            entries = entries,
-                            ar_type = ar_type,
-                            flash_message = "Error - Undefined request"), 400
+        flash('Error - Undefined request')
+        return redirect('mngmt_main'), 400
     
 
 @app.route("/ar_new", methods=["GET", "POST"])
@@ -631,7 +593,7 @@ def ar_new():
         
         # detect link input and store it, set null in case of no input #
         if request.form.get("link"):
-            link = request.form.get("link")
+            link = dblink(request.form.get("link"))
         else:
             link = None
 
@@ -717,13 +679,8 @@ def archive():
 
         # return error message in case of undefined request #
         if not request.args.get('action', '') or not request.form.get("id"):
-            return render_template("/archive.html",
-                            pageinfo = page_info, 
-                            journal = journal_exist, 
-                            events = events_exist,
-                            galls = gall_nav,
-                            entries = archived_ar,
-                            flash_message = "Error - Undefined request."), 400
+            flash('Error - Undefined request.')
+            return redirect('/archive'), 400
 
         # store requested info #
         action = request.args.get('action', '')
@@ -739,13 +696,8 @@ def archive():
             conn.commit()
             conn.close()
 
-            return render_template("/archive.html",
-                pageinfo = page_info, 
-                journal = journal_exist, 
-                events = events_exist,
-                galls = gall_nav,
-                entries = archived_ar,
-                flash_message = "Article republished.")
+            flash('Article successfully republished.')
+            return redirect('/archive')
 
 
         if action == "del": # delete article entry #
@@ -768,22 +720,12 @@ def archive():
             conn.commit()
             conn.close()
 
-            return render_template("/archive.html",
-                pageinfo = page_info, 
-                journal = journal_exist, 
-                events = events_exist,
-                galls = gall_nav,
-                entries = archived_ar,
-                flash_message = "Article deleted.")
-        
+            flash('Article deleted.')
+            return redirect('/archive')
+
         # return error in case of undefined action #
-        return render_template("/archive.html",
-                            pageinfo = page_info, 
-                            journal = journal_exist, 
-                            events = events_exist,
-                            galls = gall_nav,
-                            entries = archived_ar,
-                            flash_message = "Error - Undefined request."), 400
+        flash('Error - Undefined request.')
+        return redirect('/archive'), 400
 
     return redirect("/archive")
 
@@ -971,7 +913,7 @@ def profile_mngt():
             cur = conn.cursor()
             if request.form.get("instalink"):
                 cur.execute('UPDATE page_info SET inst_link = ? \
-                            WHERE id = 1;', (request.form.get("instalink"),))
+                            WHERE id = 1;', (dblink(request.form.get("instalink")),))
             else:
                 cur.execute('UPDATE page_info SET inst_link = ? WHERE id = 1;', (None,))
             conn.commit()
@@ -985,7 +927,7 @@ def profile_mngt():
             cur = conn.cursor()
             if request.form.get("facelink"):
                 cur.execute('UPDATE page_info SET face_link = ? \
-                            WHERE id = 1;', (request.form.get("facelink"),))
+                            WHERE id = 1;', (dblink(request.form.get("facelink")),))
             else:
                 cur.execute('UPDATE page_info SET face_link = ? WHERE id = 1;', (None,))
             conn.commit()
@@ -999,7 +941,7 @@ def profile_mngt():
             cur = conn.cursor()
             if request.form.get("ytblink"):
                 cur.execute('UPDATE page_info SET yt_link = ? \
-                            WHERE id = 1;', (request.form.get("ytblink"),))
+                            WHERE id = 1;', (dblink(request.form.get("ytblink")),))
             else:
                 cur.execute('UPDATE page_info SET yt_link = ? WHERE id = 1;', (None,))
             conn.commit()
@@ -1013,7 +955,7 @@ def profile_mngt():
             cur = conn.cursor()
             if request.form.get("tweetlink"):
                 cur.execute('UPDATE page_info SET tweet_link = ? \
-                            WHERE id = 1;', (request.form.get("tweetlink"),))
+                            WHERE id = 1;', (dblink(request.form.get("tweetlink")),))
             else:
                 cur.execute('UPDATE page_info SET tweet_link = ? WHERE id = 1;', (None,))
             conn.commit()
@@ -1027,7 +969,7 @@ def profile_mngt():
             cur = conn.cursor()
             if request.form.get("500pxlink"):
                 cur.execute('UPDATE page_info SET px_link = ? \
-                            WHERE id = 1;', (request.form.get("500pxlink"),))
+                            WHERE id = 1;', (dblink(request.form.get("500pxlink")),))
             else:
                 cur.execute('UPDATE page_info SET px_link = ? WHERE id = 1;', (None,))
             conn.commit()
@@ -1041,7 +983,7 @@ def profile_mngt():
             cur = conn.cursor()
             if request.form.get("bhnclink"):
                 cur.execute('UPDATE page_info SET bhnc_link = ? \
-                            WHERE id = 1;', (request.form.get("bhnclink"),))
+                            WHERE id = 1;', (dblink(request.form.get("bhnclink")),))
             else:
                 cur.execute('UPDATE page_info SET bhnc_link = ? WHERE id = 1;', (None,))
             conn.commit()
@@ -1055,7 +997,7 @@ def profile_mngt():
             cur = conn.cursor()
             if request.form.get("flickrlink"):
                 cur.execute('UPDATE page_info SET flickr_link = ? \
-                            WHERE id = 1;', (request.form.get("flickrlink"),))
+                            WHERE id = 1;', (dblink(request.form.get("flickrlink")),))
             else:
                 cur.execute('UPDATE page_info SET flickr_link = ? WHERE id = 1;', (None,))
             conn.commit()
@@ -1069,7 +1011,7 @@ def profile_mngt():
             cur = conn.cursor()
             if request.form.get("tumblrlink"):
                 cur.execute('UPDATE page_info SET tumblr_link = ? \
-                            WHERE id = 1;', (request.form.get("tumblrlink"),))
+                            WHERE id = 1;', (dblink(request.form.get("tumblrlink")),))
             else:
                 cur.execute('UPDATE page_info SET tumblr_link = ? WHERE id = 1;', (None,))
             conn.commit()
@@ -1914,7 +1856,7 @@ def imgsadd():
     ## add multi images to gallery ##
     ## same process as the remove multi images, but in this case data is added to the DB table, instead of removed ##
 
-    if not request.form.get("gall_id") or not request.form.get("imgrmvid"):
+    if not request.form.get("gall_id") or not request.form.get("imgaddid"):
         return redirect ("/gall_mngt")
 
     gall_id = request.form.get("gall_id")
