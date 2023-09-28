@@ -425,116 +425,121 @@ def ar_mngmt():
                             ar_type = ar_type,
                             article = article)
         
-        if action == 2: # archive article entry #
+        # allow changes in page only for main user #
+        if session.get("user_id") == 1:
 
-            # change article archive status in DB # 
-            conn = get_db_connection()
-            cur = conn.cursor()
-            cur.execute('UPDATE articles SET archived = ? WHERE id = ?;', (True, ar_id,))
-            conn.commit()
-            conn.close()
+            if action == 2: # archive article entry #
 
-            flash('Article successfully archived')
-            return redirect("/ar_mngt?artp="+ar_type)
-        
-        if action == 3: # save edited article entry #
+                # change article archive status in DB # 
+                conn = get_db_connection()
+                cur = conn.cursor()
+                cur.execute('UPDATE articles SET archived = ? WHERE id = ?;', (True, ar_id,))
+                conn.commit()
+                conn.close()
 
-            # get and confirm title and content input #
-            if request.form.get("title") and request.form.get("content"):
-                article['title'] = request.form.get("title")
-                article['content'] = request.form.get("content")
-            else:
-                # Return error nessage in case of no input #
-                flash('Update failed - Title and content text required')
-                return redirect('/ar_mngt?artp='+ar_type), 400
+                flash('Article successfully archived')
+                return redirect("/ar_mngt?artp="+ar_type)
+            
+            if action == 3: # save edited article entry #
 
-            # get link input - set null if empty #
-            if request.form.get("link"):
-                article['link'] = dblink(request.form.get("link"))
-            else:
-                article['link'] = None
-
-            # update info in the DB #
-            conn = get_db_connection()
-            cur = conn.cursor()
-            cur.execute('UPDATE articles \
-                        SET title = ?, content = ?, link = ? \
-                        WHERE id = ?;', (article['title'], article['content'], article['link'], ar_id,))
-            conn.commit()
-            conn.close()
-
-            # img file upload handling implemented as shown here https://blog.miguelgrinberg.com/post/handling-file-uploads-with-flask #
-
-            if request.files['img']:
-
-                # set info to save img in files and DB #
-                article['image'] = "article" + str(ar_id)
-
-                # get the path to save, and save img file #
-                path = os.path.join((cwd+app.config['UPLOAD_PATH']), article['image']+".jpg")
-                
-                # get image file from input and process it, loaded == True if success, False if not #
-                                
-                if not img_upload(request.files['img'], path, ['.jpg', 'jpeg'], 800):  
-                    
-                    flash('Article successfully updated BUT invalid image discarded.')
-                    return render_template("edit_entry.html",
-                                pageinfo = page_info, 
-                                journal = journal_exist, 
-                                events = events_exist,
-                                galls = gall_nav,
-                                article = article,
-                                ar_type = ar_type), 415
-
+                # get and confirm title and content input #
+                if request.form.get("title") and request.form.get("content"):
+                    article['title'] = request.form.get("title")
+                    article['content'] = request.form.get("content")
                 else:
+                    # Return error nessage in case of no input #
+                    flash('Update failed - Title and content text required')
+                    return redirect('/ar_mngt?artp='+ar_type), 400
 
-                    # update article in db with image name #
-                    conn = get_db_connection()
-                    cur = conn.cursor()
-                    cur.execute('UPDATE articles SET image = ? WHERE id = ?;', (article['image'], ar_id,))
-                    conn.commit()
-                    conn.close()
+                # get link input - set null if empty #
+                if request.form.get("link"):
+                    article['link'] = dblink(request.form.get("link"))
+                else:
+                    article['link'] = None
 
-            flash('Article successfully updated')
-            return render_template("edit_entry.html",
+                # update info in the DB #
+                conn = get_db_connection()
+                cur = conn.cursor()
+                cur.execute('UPDATE articles \
+                            SET title = ?, content = ?, link = ? \
+                            WHERE id = ?;', (article['title'], article['content'], article['link'], ar_id,))
+                conn.commit()
+                conn.close()
+
+                # img file upload handling implemented as shown here https://blog.miguelgrinberg.com/post/handling-file-uploads-with-flask #
+
+                if request.files['img']:
+
+                    # set info to save img in files and DB #
+                    article['image'] = "article" + str(ar_id)
+
+                    # get the path to save, and save img file #
+                    path = os.path.join((cwd+app.config['UPLOAD_PATH']), article['image']+".jpg")
+                    
+                    # get image file from input and process it, loaded == True if success, False if not #
+                                    
+                    if not img_upload(request.files['img'], path, ['.jpg', 'jpeg'], 800):  
+                        
+                        flash('Article successfully updated BUT invalid image discarded.')
+                        return render_template("edit_entry.html",
+                                    pageinfo = page_info, 
+                                    journal = journal_exist, 
+                                    events = events_exist,
+                                    galls = gall_nav,
+                                    article = article,
+                                    ar_type = ar_type), 415
+
+                    else:
+
+                        # update article in db with image name #
+                        conn = get_db_connection()
+                        cur = conn.cursor()
+                        cur.execute('UPDATE articles SET image = ? WHERE id = ?;', (article['image'], ar_id,))
+                        conn.commit()
+                        conn.close()
+
+                flash('Article successfully updated')
+                return render_template("edit_entry.html",
+                                    pageinfo = page_info, 
+                                    journal = journal_exist, 
+                                    events = events_exist,
+                                    galls = gall_nav,
+                                    article = article,
+                                    ar_type = ar_type)
+                        
+            if action == 4: # remove photo from article #
+
+                # get image name from the db to proceed with file deletion #
+
+                conn = get_db_connection()
+                image = conn.execute('SELECT * FROM articles WHERE id = ?;', (ar_id,)).fetchone()
+                conn.close()
+
+                if image['image']:
+                    
+                    os.remove(cwd+"/static/images/" + str(image['image']) + ".jpg") 
+
+                # update article in db with Null image #
+                conn = get_db_connection()
+                cur = conn.cursor()
+                cur.execute('UPDATE articles SET image = ? WHERE id = ?;', (None, ar_id,))
+                conn.commit()
+                conn.close()
+
+                # update the image info from the article content so it does not try to load # 
+                article['image'] = None
+
+                flash('Photo successfully removed')
+                return render_template("edit_entry.html",
                                 pageinfo = page_info, 
                                 journal = journal_exist, 
                                 events = events_exist,
                                 galls = gall_nav,
                                 article = article,
-                                ar_type = ar_type)
-                    
-        if action == 4: # remove photo from article #
-
-            # get image name from the db to proceed with file deletion #
-
-            conn = get_db_connection()
-            image = conn.execute('SELECT * FROM articles WHERE id = ?;', (ar_id,)).fetchone()
-            conn.close()
-
-            if image['image']:
-                
-                os.remove(cwd+"/static/images/" + str(image['image']) + ".jpg") 
-
-            # update article in db with Null image #
-            conn = get_db_connection()
-            cur = conn.cursor()
-            cur.execute('UPDATE articles SET image = ? WHERE id = ?;', (None, ar_id,))
-            conn.commit()
-            conn.close()
-
-            # update the image info from the article content so it does not try to load # 
-            article['image'] = None
-
-            flash('Photo successfully removed')
-            return render_template("edit_entry.html",
-                            pageinfo = page_info, 
-                            journal = journal_exist, 
-                            events = events_exist,
-                            galls = gall_nav,
-                            article = article,
-                            ar_type = ar_type
-                            )
+                                ar_type = ar_type
+                                )
+        else:
+            return redirect("/warning")
                     
         # return error in case of undefined action #
         flash('Error - Undefined request')
@@ -566,6 +571,10 @@ def ar_new():
     
     
     if request.method == "POST":
+
+        # allow changes in page only for main user #
+        if session.get("user_id") != 1:
+            return redirect("/warning")
 
         # article type validation and return error in case of undefined #
         if request.form.get("ar_type"):
@@ -663,6 +672,10 @@ def archive():
 
     if request.method == "POST":
 
+        # allow changes in page only for main user #
+        if session.get("user_id") != 1:
+            return redirect("/warning")
+
         # return error message in case of undefined request #
         if not request.args.get('action', '') or not request.form.get("id"):
             flash('Error - Undefined request.')
@@ -752,6 +765,10 @@ def profile_mngt():
                                 )
     
     if request.method == "POST":
+
+        # allow changes in page only for main user #
+        if session.get("user_id") != 1:
+            return redirect("/warning")
 
         # get which action was requested and proceed with change, return error in case of no argument #        
         if not request.args.get('action', ''):
@@ -1036,6 +1053,10 @@ def base_mngt():
     
     if request.method == "POST":
 
+        # allow changes in page only for main user #
+        if session.get("user_id") != 1:
+            return redirect("/warning")
+
         # update the page info considering the users request as "action", return error if no action defined #
         if not request.args.get('action', ''):
             flash('Error - Undefined request')
@@ -1207,6 +1228,10 @@ def aspect_mngt():
     
     if request.method == "POST":
 
+        # allow changes in page only for main user #
+        if session.get("user_id") != 1:
+            return redirect("/warning")
+
         # fecth action requested - return error if none #
         if not request.args.get('action', ''):
             flash('Error - Undefined request')
@@ -1314,6 +1339,10 @@ def gall_new():
     
     if request.method == "POST":
 
+        # allow changes in page only for main user #
+        if session.get("user_id") != 1:
+            return redirect("/warning")
+
         # guarantee a title input #
         if not request.form.get("title"):
             flash('Gallery Title is required')
@@ -1403,6 +1432,10 @@ def gall_edit():
                                 )
     
     if request.method == "POST":
+
+        # allow changes in page only for main user #
+        if session.get("user_id") != 1:
+            return redirect("/warning")
         
         # in case of post method, get the requested action. Return error in case of no argument #
         if request.args.get('action', ''):    
@@ -1494,6 +1527,10 @@ def gall_edit():
 @login_required
 def gall_del():
 
+    # allow changes in page only for main user #
+    if session.get("user_id") != 1:
+        return redirect("/warning")
+
     ## delete gallery entry ##
 
     if request.method == "POST":
@@ -1555,6 +1592,10 @@ def img_edit():
     
     if request.method == "POST":
 
+        # allow changes in page only for main user #
+        if session.get("user_id") != 1:
+            return redirect("/warning")
+
         # check title input - return error if null #
         if request.form.get("title"):
             title = request.form.get("title")
@@ -1587,6 +1628,10 @@ def img_edit():
 @app.route("/img_del", methods=["POST"])
 @login_required
 def img_del():
+
+    # allow changes in page only for main user #
+    if session.get("user_id") != 1:
+        return redirect("/warning")
 
     ## delete image entry ##
 
@@ -1624,6 +1669,10 @@ def img_del():
 @app.route("/multimagesdel", methods=["POST"])
 @login_required
 def multi_img_del():
+
+    # allow changes in page only for main user #
+    if session.get("user_id") != 1:
+        return redirect("/warning")
 
     ## delete multi image entry ##
 
@@ -1679,6 +1728,10 @@ def photos_upload():
     
 
     if request.method == "POST":
+
+        # allow changes in page only for main user #
+        if session.get("user_id") != 1:
+            return redirect("/warning")
 
         # if file detected, proceed with upload and validation #
         # no standard image_upload function used because the DB image id is necessary to save file path #
@@ -1740,6 +1793,10 @@ def too_large(e):
 @login_required
 def imgsrmv():    
 
+    # allow changes in page only for main user #
+    if session.get("user_id") != 1:
+        return redirect("/warning")
+
     ## multi imgs gallery removal ##
 
     # return error if no Id's #
@@ -1768,7 +1825,11 @@ def imgsrmv():
 
 @app.route("/imgsadd", methods=["POST"])
 @login_required
-def imgsadd():    
+def imgsadd():
+
+    # allow changes in page only for main user #
+    if session.get("user_id") != 1:
+        return redirect("/warning")    
 
     ## add multi images to gallery ##
     ## same process as the remove multi images, but in this case data is added to the DB table, instead of removed ##
@@ -1792,3 +1853,16 @@ def imgsadd():
     conn.close() 
 
     return redirect("/gall_edit?id="+gall_id)
+
+
+@app.route("/warning", methods=["GET"])
+@login_required
+def warning():   
+
+    flash('Visitors are not allowed to make changes')
+    return render_template("/blank.html",
+                            pageinfo = page_info, 
+                            journal = journal_exist, 
+                            events = events_exist,
+                            galls = gall_nav,
+                            )

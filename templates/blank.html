@@ -1,0 +1,27 @@
+{% extends "be_layout.html" %}
+
+{% block title %}
+Warning
+{% endblock %}
+
+{% block main %}
+
+<div class="mngt_container">
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+            <br><br>
+            <h5>{{ message }}</h5>
+            <br><br>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+</div>
+
+<ul>
+    <a href="/management"><li class="limngt">Return</li></a>
+</ul>
+
+{% endblock %}
