@@ -17,15 +17,10 @@
         {% elif inftype == "copyright" %}
             Copyright Disclaimer
         {% endif %}
-    </h4>    
+    </h4> 
+    <br>   
     <div class="article_content" style="margin: 0; border-bottom: none; text-align: justify;">                
-        <p>
-            {% if inftype == "legal" %}
-                {{ pageinfo.legal }}
-            {% elif inftype == "copyright" %}
-                {{ pageinfo.copyright }}
-            {% endif %}
-        </p> 
+        <p>{% if inftype == "legal" %}{{ pageinfo.legal }}{% elif inftype == "copyright" %}{{ pageinfo.copyright }}{% endif %}</p> 
         <br>           
     </div>
 </div>

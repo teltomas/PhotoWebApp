@@ -871,7 +871,7 @@ def profile_mngt():
 
                 path = os.path.join((cwd+app.config['UPLOAD_PATH']), fname)
 
-                if not img_upload(request.files['profimg'], path, ['.jpg', 'jpeg', '.png'], 600): 
+                if not img_upload(request.files['profimg'], path, ['.jpg', 'jpeg', '.png'], 600):
                     flash('Failed to upload image')
                     return redirect('profile_mngt'), 415
                 
@@ -1254,7 +1254,7 @@ def aspect_mngt():
                         flash('Failed to upload image - invalid .ICON file')
                         return redirect('/aspect_mngt'), 415
 
-                path = os.path.join((cwd+"static/icons/"), "favicon.ico")
+                path = os.path.join((cwd+"/static/icons/"), "favicon.ico")
 
                 img.save(path)
 
@@ -1791,4 +1791,4 @@ def imgsadd():
     conn.commit()
     conn.close() 
 
-    return redirect("/gall_edit?id="+gall_id)  
+    return redirect("/gall_edit?id="+gall_id)
