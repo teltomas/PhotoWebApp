@@ -162,3 +162,4 @@ schema.sql
 init_db.py
 dbquery.py
 flask_session
+\images

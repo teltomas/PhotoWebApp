@@ -1,7 +1,5 @@
 import os
-import sqlite3
 import re
-from datetime import datetime
 from flask import Flask, redirect, render_template, session, request, flash
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -13,6 +11,7 @@ from back import validate_image, get_db_connection, image_resize, createthumb, l
 
 # configure app
 app = Flask(__name__) 
+
 
 # Custom filter
 app.jinja_env.filters["date"] = date
@@ -27,7 +26,7 @@ app.config['UPLOAD_PATH'] = '/static/images/'
 
 
 ####### FOR FRONTEND #######
-
+ 
 # get the necessary general info from db to store in global variables #
 
 journal_exist = False
@@ -42,7 +41,7 @@ journals = conn.execute('SELECT * FROM articles WHERE type = "journal" \
                         AND archived = 0;').fetchone() # determine if there are journals in db to activate the journal nav item #
 events = conn.execute('SELECT * FROM articles WHERE type = "event" \
                       AND archived = 0;').fetchone() # determine if there are events in db to activate the events nav item #
-gall_nav = conn.execute('SELECT id, title FROM galleries WHERE id != 1;').fetchall() # get how many galleries exist in db to fill the galleries nav itens #
+gall_nav = conn.execute('SELECT id, title FROM galleries WHERE id != 1 ORDER BY id DESC;').fetchall() # get how many galleries exist in db to fill the galleries nav itens #
 page_conf = conn.execute('SELECT email, page_email, page_email_hash \
                          FROM page_info WHERE id = 1;').fetchone() # for the general page info #
 
@@ -544,7 +543,7 @@ def ar_mngmt():
         # return error in case of undefined action #
         flash('Error - Undefined request')
         return redirect('mngmt_main'), 400
-    
+
 
 @app.route("/ar_new", methods=["GET", "POST"])
 @login_required

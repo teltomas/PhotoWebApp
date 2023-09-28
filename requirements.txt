@@ -1,5 +1,6 @@
 Flask
 Flask-Session
 sqlite3
-pillow
+Pillow
 datetime
+Flask-Mail
