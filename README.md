@@ -4,7 +4,9 @@ Web App to publish a photo portfolio.
 
 This web page was created in Flask on behalf of a CS50x end project. 
 
-![imagem](https://github.com/teltomas/PhotoWebApp/blob/main/static/p_thumb1.png)
+<p align="center" width="100%">
+    <img width="50%" src="https://github.com/teltomas/PhotoWebApp/blob/main/static/p_thumb1.png">
+</p>
 
 From the beginning I wanted to do for this project something that would have some meaning to me. Considering that I do photography as a hobbie, my decision ended up on creating a Web Based app in Flask where me, and other photographers from my comunity, would be able to display our work.
 
@@ -12,9 +14,10 @@ Considering that the app would not being something just for me, it would be nece
 
 With that in mind, this web app was born.
 
-![imagem](https://github.com/teltomas/PhotoWebApp/blob/main/static/p_thumb3.png)
-
-![imagem](https://github.com/teltomas/PhotoWebApp/blob/main/static/p_thumb4.png)
+<p align="center" width="100%">
+<img width="33%" src="https://github.com/teltomas/PhotoWebApp/blob/main/static/p_thumb3.png">
+<img width="33%" src="https://github.com/teltomas/PhotoWebApp/blob/main/static/p_thumb4.png">
+</p>
 
 Right now, any information presented in this page was randomly generated and does not represent the reality.
 
