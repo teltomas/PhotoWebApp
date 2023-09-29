@@ -2,7 +2,7 @@
 
 Web App to publish a photo portfolio.
 
-This web page was created in Flask on behalf of a CS50x end project. 
+This web page was created in Flask on behalf of a CS50x finish project. 
 
 <p align="center" width="100%">
     <img width="50%" src="https://github.com/teltomas/PhotoWebApp/blob/main/static/p_thumb1.png">
