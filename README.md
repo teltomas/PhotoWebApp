@@ -19,9 +19,9 @@ With that in mind, this web app was born.
 <img width="40%" src="https://github.com/teltomas/PhotoWebApp/blob/main/static/p_thumb4.png">
 </p>
 
-Right now, any information presented in this page was randomly generated and does not represent the reality.
+Right now, any information presented on this page is randomly generated and does not represent reality.
 
-Most of the build and design was done by my own ideas and creation, although with some exceptions like the following ones:
+Most of the build and design was done by my own creation, although with some exceptions like the following ones:
 
 -- Photo gallery viewer provided by lightbox 2 (https://lokeshdhakar.com/projects/lightbox2/), 
 following this video tutorial https://www.youtube.com/watch?v=4gcy-qT9kGw
@@ -44,5 +44,5 @@ following this video tutorial https://www.youtube.com/watch?v=4gcy-qT9kGw
 <img width="50%" src="https://github.com/teltomas/PhotoWebApp/blob/main/static/p_thumb2.png">
 </p>
 
-# Hope you'll like it.
+# Hope you like it.
 
