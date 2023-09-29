@@ -15,8 +15,8 @@ Considering that the app would not being something just for me, it would be nece
 With that in mind, this web app was born.
 
 <p align="center" width="100%">
-<img width="33%" src="https://github.com/teltomas/PhotoWebApp/blob/main/static/p_thumb3.png">
-<img width="33%" src="https://github.com/teltomas/PhotoWebApp/blob/main/static/p_thumb4.png">
+<img width="40%" src="https://github.com/teltomas/PhotoWebApp/blob/main/static/p_thumb3.png">
+<img width="40%" src="https://github.com/teltomas/PhotoWebApp/blob/main/static/p_thumb4.png">
 </p>
 
 Right now, any information presented in this page was randomly generated and does not represent the reality.
@@ -40,8 +40,9 @@ following this video tutorial https://www.youtube.com/watch?v=4gcy-qT9kGw
 
 -- Many info collected from W3School and StackOverflow and Youtube tutorials.
 
-
-![imagem](https://github.com/teltomas/PhotoWebApp/blob/main/static/p_thumb2.png)
+<p align="center" width="100%">
+<img width="50%" src="https://github.com/teltomas/PhotoWebApp/blob/main/static/p_thumb2.png">
+</p>
 
 # Hope you'll like it.
 
